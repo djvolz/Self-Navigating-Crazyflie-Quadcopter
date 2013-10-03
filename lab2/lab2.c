@@ -13,8 +13,8 @@
 #define GREEN_LED GPIO_Pin_5
 
 
-  /* LED will turn on if TRIGGER set to 1 */
-  int TRIGGER = 0;
+  /* LED will turn on if DEBUG set to 1 */
+  int DEBUG = 0;
 
 
 ErrorStatus HSEStartUpStatus;
@@ -228,7 +228,7 @@ int main(void) {
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE); 
   GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST , ENABLE);
   
-  if(TRIGGER) {
+  if(DEBUG) {
    ledInit();
   }
  
