@@ -10,6 +10,8 @@
 // Green LED is PB5, pin 41, active low
 #define GREEN_LED GPIO_Pin_5
 
+ErrorStatus HSEStartUpStatus;
+
 void ledInit(void) {
   // Initialize GPIO pin for green LED
   GPIO_InitTypeDef initStruct;
@@ -117,7 +119,7 @@ void TIM2_IRQHandler(void)
   * @param  None
   * @retval None
   */
-void SystemInit (void)
+void SystemInitLab2 (void)
 {
   /* Reset the RCC clock configuration to the default reset state(for debug purpose) */
   /* Set HSION bit */
@@ -140,7 +142,7 @@ void SystemInit (void)
   RCC->CIR = 0x00FF0000;
 
 
-  SetSysClockTo72();
+  SetSysClockLab2();
 }
 
   /**
@@ -149,7 +151,7 @@ void SystemInit (void)
   * @param  None
   * @retval None
   */
-void SetSysClockTo72(void)
+void SetSysClockLab2(void)
 {
   /* SYSCLK, HCLK, PCLK2 and PCLK1 configuration -----------------------------*/   
   /* RCC system reset(for debug purpose) */
@@ -226,8 +228,6 @@ void SetSysClockTo72(void)
   }
 }
 
-#endif /* STM32F10X_LD_VL && STM32F10X_MD_VL */
-
 
 
 
@@ -243,7 +243,7 @@ void SetSysClockTo72(void)
 
 
 int main(void) {
-  SystemInit();
+  SystemInitLab2();
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE); 
   GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST , ENABLE);
