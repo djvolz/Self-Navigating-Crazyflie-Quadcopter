@@ -1,5 +1,7 @@
 #include "stm32f10x_conf.h"
-#include "system_stm32f10x.c"
+#include "lib/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/inc/stm32f10x_flash.h"
+#include "lib/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/src/stm32f10x_flash.c"
+//#include "system_stm32f10x.c"
 //timer
 #include "lib/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/inc/stm32f10x_tim.h"
 #include "lib/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/src/stm32f10x_tim.c"
@@ -9,6 +11,11 @@
 
 // Green LED is PB5, pin 41, active low
 #define GREEN_LED GPIO_Pin_5
+
+ErrorStatus HSEStartUpStatus;
+#define SYSCLK_FREQ_72MHz  72000000
+uint32_t SystemCoreClock         = SYSCLK_FREQ_72MHz;        /*!< System Clock Frequency (Core Clock) */
+void SetSysClockTo72(void);
 
 void ledInit(void) {
   // Initialize GPIO pin for green LED
@@ -226,7 +233,6 @@ void SetSysClockTo72(void)
   }
 }
 
-#endif /* STM32F10X_LD_VL && STM32F10X_MD_VL */
 
 
 
