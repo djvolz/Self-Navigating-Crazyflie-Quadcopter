@@ -79,16 +79,6 @@ void ledToggle(void) {
 }
 
 
-
-int main(void) {
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE); 
-  GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST , ENABLE);
-  ledInit();
-  TIM_Config();
-  while (1) {
-  }
-}
-
 /**
   * @brief  This function handles TIM2 global interrupt request.
   * @param  None
@@ -150,102 +140,116 @@ void SystemInit (void)
   RCC->CIR = 0x00FF0000;
 
 
+  SetSysClockTo72();
+}
 
-  /* Configure the System clock frequency, HCLK, PCLK2 and PCLK1 prescalers */
-  /* Configure the Flash Latency cycles and enable prefetch buffer */
-  SetSysClock();
-
-static void SetSysClock(void)
+  /**
+  * @brief  Sets System clock frequency to 72MHz and configure HCLK, PCLK2 
+  *         and PCLK1 prescalers. 
+  * @param  None
+  * @retval None
+  */
+void SetSysClockTo72(void)
 {
-  __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
-  
-  /* SYSCLK, HCLK, PCLK2 and PCLK1 configuration ---------------------------*/    
-  /* Enable HSE */    
-  RCC->CR |= ((uint32_t)RCC_CR_HSEON);
- 
-  /* Wait till HSE is ready and if Time out is reached exit */
-  do
-  {
-    HSEStatus = RCC->CR & RCC_CR_HSERDY;
-    StartUpCounter++;  
-  } while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
+  /* SYSCLK, HCLK, PCLK2 and PCLK1 configuration -----------------------------*/   
+  /* RCC system reset(for debug purpose) */
+  RCC_DeInit();
 
-  if ((RCC->CR & RCC_CR_HSERDY) != RESET)
-  {
-    HSEStatus = (uint32_t)0x01;
-  }
-  else
-  {
-    HSEStatus = (uint32_t)0x00;
-  }  
+  /* Enable HSE */
+  RCC_HSEConfig(RCC_HSE_ON);
 
-  if (HSEStatus == (uint32_t)0x01)
+  /* Wait till HSE is ready */
+  HSEStartUpStatus = RCC_WaitForHSEStartUp();
+
+  if (HSEStartUpStatus == SUCCESS)
   {
     /* Enable Prefetch Buffer */
-    FLASH->ACR |= FLASH_ACR_PRFTBE;
+    FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
 
     /* Flash 2 wait state */
-    FLASH->ACR &= (uint32_t)((uint32_t)~FLASH_ACR_LATENCY);
-    FLASH->ACR |= (uint32_t)FLASH_ACR_LATENCY_2;    
-
+    FLASH_SetLatency(FLASH_Latency_2);
  
     /* HCLK = SYSCLK */
-    RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
-      
+    RCC_HCLKConfig(RCC_SYSCLK_Div1); 
+  
     /* PCLK2 = HCLK */
-    RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE2_DIV1;
-    
-    /* PCLK1 = HCLK */
-    RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE1_DIV2;
+    RCC_PCLK2Config(RCC_HCLK_Div1); 
+
+    /* PCLK1 = HCLK/2 */
+    RCC_PCLK1Config(RCC_HCLK_Div2);
 
 #ifdef STM32F10X_CL
-    /* Configure PLLs ------------------------------------------------------*/
+    /* Configure PLLs *********************************************************/
     /* PLL2 configuration: PLL2CLK = (HSE / 5) * 8 = 40 MHz */
-    /* PREDIV1 configuration: PREDIV1CLK = PLL2 / 5 = 8 MHz */
-        
-    RCC->CFGR2 &= (uint32_t)~(RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL |
-                              RCC_CFGR2_PREDIV1 | RCC_CFGR2_PREDIV1SRC);
-    RCC->CFGR2 |= (uint32_t)(RCC_CFGR2_PREDIV2_DIV5 | RCC_CFGR2_PLL2MUL8 |
-                             RCC_CFGR2_PREDIV1SRC_PLL2 | RCC_CFGR2_PREDIV1_DIV5);
-  
-    /* Enable PLL2 */
-    RCC->CR |= RCC_CR_PLL2ON;
-    /* Wait till PLL2 is ready */
-    while((RCC->CR & RCC_CR_PLL2RDY) == 0)
-    {
-    }
-    
-   
-    /* PLL configuration: PLLCLK = PREDIV1 * 9 = 72 MHz */ 
-    RCC->CFGR &= (uint32_t)~(RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
-    RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | 
-                            RCC_CFGR_PLLMULL9); 
-#else    
-    /*  PLL configuration: PLLCLK = HSE * 9 = 72 MHz */
-    RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE |
-                                        RCC_CFGR_PLLMULL));
-    RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
-#endif /* STM32F10X_CL */
+    RCC_PREDIV2Config(RCC_PREDIV2_Div5);
+    RCC_PLL2Config(RCC_PLL2Mul_8);
 
-    /* Enable PLL */
-    RCC->CR |= RCC_CR_PLLON;
+    /* Enable PLL2 */
+    RCC_PLL2Cmd(ENABLE);
+
+    /* Wait till PLL2 is ready */
+    while (RCC_GetFlagStatus(RCC_FLAG_PLL2RDY) == RESET)
+    {}
+
+    /* PLL configuration: PLLCLK = (PLL2 / 5) * 9 = 72 MHz */ 
+    RCC_PREDIV1Config(RCC_PREDIV1_Source_PLL2, RCC_PREDIV1_Div5);
+    RCC_PLLConfig(RCC_PLLSource_PREDIV1, RCC_PLLMul_9);
+#else
+    /* PLLCLK = 8MHz * 9 = 72 MHz */
+    RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9);
+#endif
+
+    /* Enable PLL */ 
+    RCC_PLLCmd(ENABLE);
 
     /* Wait till PLL is ready */
-    while((RCC->CR & RCC_CR_PLLRDY) == 0)
+    while (RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET)
     {
     }
-    
+
     /* Select PLL as system clock source */
-    RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
-    RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;    
+    RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
 
     /* Wait till PLL is used as system clock source */
-    while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)0x08)
+    while(RCC_GetSYSCLKSource() != 0x08)
     {
     }
   }
   else
-  { /* If HSE fails to start-up, the application will have wrong clock 
-         configuration. User can add here some code to deal with this error */
+  { /* If HSE fails to start-up, the application will have wrong clock configuration.
+       User can add here some code to deal with this error */    
+
+    /* Go to infinite loop */
+    while (1)
+    {
+    }
   }
 }
+
+#endif /* STM32F10X_LD_VL && STM32F10X_MD_VL */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int main(void) {
+  SystemInit();
+
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE); 
+  GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST , ENABLE);
+  ledInit();
+
+  while (1) {
+  }
+}
+
