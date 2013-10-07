@@ -9,29 +9,39 @@
 #include "lib/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/inc/misc.h"
 #include "lib/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver/src/misc.c"
 
+#include "lab2.h"
+
 // Green LED is PB5, pin 41, active low
+#define RED_LED GPIO_Pin_4
 #define GREEN_LED GPIO_Pin_5
 
 
 // Motor handling
 TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 TIM_OCInitTypeDef  TIM_OCInitStructure;
-uint16_t CCR1_Val = 333;
-uint16_t CCR2_Val = 249;
-uint16_t CCR3_Val = 166;
-uint16_t CCR4_Val = 83;
+uint16_t T2_CCR1_Val = 0;
+uint16_t T2_CCR2_Val = 600;
+
+uint16_t CCR1_Val = 63;
+uint16_t CCR2_Val = 63;
+uint16_t CCR3_Val = 63;
+uint16_t CCR4_Val = 63;
 uint16_t PrescalerValue = 0;
+
+uint16_t capture = 0;
 
 
 
   /* LED will turn on if DEBUG set to 1 */
   int DEBUG = 0;
+  int motorSelected = 0;
 
 
 ErrorStatus HSEStartUpStatus;
 #define SYSCLK_FREQ_72MHz  72000000
 uint32_t SystemCoreClock = SYSCLK_FREQ_72MHz;        /*!< System Clock Frequency (Core Clock) */
 void SetSysClockTo72(void);
+void motorSwitch(void);
 
 void ledInit(void) {
   // Initialize GPIO pin for green LED
@@ -52,7 +62,7 @@ void TIM_Config(void)
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
   /* TIM2 configuration */
-  TIM_TimeBaseStructure.TIM_Period = 1200 - 1;       
+  TIM_TimeBaseStructure.TIM_Period = 2400 - 1;       
   TIM_TimeBaseStructure.TIM_Prescaler = ((SystemCoreClock/1200) - 1);
   TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;    
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
@@ -61,8 +71,11 @@ void TIM_Config(void)
   
   /* Output Compare Timing Mode configuration: Channel1 */
   TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_Timing;
-  TIM_OCInitStructure.TIM_Pulse = 0x0;  
+  TIM_OCInitStructure.TIM_Pulse = T2_CCR1_Val; 
   TIM_OC1Init(TIM2, &TIM_OCInitStructure);
+
+  TIM_OCInitStructure.TIM_Pulse = T2_CCR2_Val;
+  TIM_OC2Init(TIM2, &TIM_OCInitStructure);
 
   /* Immediate load of TIM2,TIM3 and TIM4 Precaler values */
   TIM_PrescalerConfig(TIM2, ((SystemCoreClock/1200) - 1), TIM_PSCReloadMode_Immediate);
@@ -81,7 +94,7 @@ void TIM_Config(void)
   NVIC_Init(&NVIC_InitStructure);
 
   /* Enable TIM2, TIM3 and TIM4 Update interrupts */
-  TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+  TIM_ITConfig(TIM2, TIM_IT_CC1 | TIM_IT_CC2, ENABLE);
 
   /* TIM2, TIM3 and TIM4 enable counters */
   TIM_Cmd(TIM2, ENABLE);
@@ -100,6 +113,43 @@ void ledToggle(void) {
     state ^= 1;
   }
 }
+void redLedToggle(void){
+  static unsigned int  state = 0;
+  if (state) {
+    // Pull up, off
+    GPIO_SetBits(GPIOB, RED_LED);
+    state ^= 1;
+  } else {
+    // Pull down, on
+    GPIO_ResetBits(GPIOB, RED_LED);
+    state ^= 1;
+  }
+
+}
+
+void motorSwitch(void) {
+ if(motorSelected == 0){
+   TIM3->CCR4 = 0;
+   TIM4->CCR3 = 63;
+   motorSelected++;
+ }
+ else if(motorSelected == 1){
+   TIM4->CCR3 = 0;
+   TIM4->CCR4 = 63;
+   motorSelected++;
+ }
+ else if(motorSelected == 2){
+   TIM4->CCR4 = 0;
+   TIM3->CCR3 = 63;
+   motorSelected++;
+ }
+ else if(motorSelected == 3){
+   TIM3->CCR3 = 0;
+   TIM3->CCR4 = 63;
+   motorSelected = 0;
+ }
+}
+
 
 
 /**
@@ -110,9 +160,32 @@ void ledToggle(void) {
 void TIM2_IRQHandler(void)
 {
   /* Clear TIM2 update interrupt */
-  TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+  //TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+  if (TIM_GetITStatus(TIM2, TIM_IT_CC1) != RESET)
+  {
+    TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
+
+    /* LED3 toggling with frequency = 219.7 Hz */
+     ledToggle();
+ // redLedToggle();
+ // motorSwitch();
+
+    capture = TIM_GetCapture1(TIM2);
+    TIM_SetCompare1(TIM2, capture + T2_CCR1_Val);
+  }
+  if(TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET)
+  {
+    TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
+    redLedToggle();
+
+    capture = TIM_GetCapture2(TIM2);
+    TIM_SetCompare2(TIM2, capture + T2_CCR2_Val);
+  }
+
   
-  ledToggle();
+ // ledToggle();
+  //redLedToggle();
+//  motorSwitch();
 }
 
 
@@ -241,29 +314,17 @@ void motor_GPIO_Configuration(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
 
-// #ifdef STM32F10X_CL
-//   /*GPIOB Configuration: TIM3 channel1, 2, 3 and 4 */
-//   GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9;
-//   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-//   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-
-//   GPIO_Init(GPIOC, &GPIO_InitStructure);
-
-//   GPIO_PinRemapConfig(GPIO_FullRemap_TIM3, ENABLE); 
-
-// #else
   /* GPIOA Configuration:TIM3 Channel1, 2, 3 and 4 as alternate function push-pull */
+  DEBUG = 1;
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  //GPIO_PinRemapConfig( GPIO_FullRemap_TIM3, ENABLE );        // Map TIM3_CH3 to GPIOC.Pin8 
 
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-  GPIO_PinRemapConfig(GPIO_FullRemap_TIM3, ENABLE); 
-//#endif
 }
 
 void motorHandler(void)
@@ -293,28 +354,31 @@ void motorHandler(void)
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 
   TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+  TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
 
   /* PWM1 Mode configuration: Channel1 */
   TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-  TIM_OCInitStructure.TIM_Pulse = CCR1_Val;
+  TIM_OCInitStructure.TIM_Pulse = 0; // CCR1_Val;
   TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 
-  TIM_OC1Init(TIM3, &TIM_OCInitStructure);
+  TIM_OC3Init(TIM4, &TIM_OCInitStructure);
 
-  TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
+  TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Enable);
+  
 
   /* PWM1 Mode configuration: Channel2 */
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-  TIM_OCInitStructure.TIM_Pulse = CCR2_Val;
+  TIM_OCInitStructure.TIM_Pulse = 0; // CCR2_Val;
 
-  TIM_OC2Init(TIM3, &TIM_OCInitStructure);
+  TIM_OC4Init(TIM4, &TIM_OCInitStructure);
 
-  TIM_OC2PreloadConfig(TIM3, TIM_OCPreload_Enable);
+  TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
+  
 
   /* PWM1 Mode configuration: Channel3 */
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-  TIM_OCInitStructure.TIM_Pulse = CCR3_Val;
+  TIM_OCInitStructure.TIM_Pulse = 0; // CCR3_Val;
 
   TIM_OC3Init(TIM3, &TIM_OCInitStructure);
 
@@ -322,7 +386,7 @@ void motorHandler(void)
 
   /* PWM1 Mode configuration: Channel4 */
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-  TIM_OCInitStructure.TIM_Pulse = CCR4_Val;
+  TIM_OCInitStructure.TIM_Pulse = 0; // CCR4_Val;
 
   TIM_OC4Init(TIM3, &TIM_OCInitStructure);
 
@@ -332,22 +396,37 @@ void motorHandler(void)
 
   /* TIM3 enable counter */
   TIM_Cmd(TIM3, ENABLE);
+  TIM_Cmd(TIM4, ENABLE);
 }
 
+void motor_RCC_Configuration(void)
+{
+  /* TIM3 clock enable */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+
+  /* GPIOA and GPIOB clock enable */
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
+                         RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
+}
 
 int main(void) {
   SystemInit();
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE); 
   GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST , ENABLE);
-  
-  DEBUG = 1;
-  if(DEBUG) {
-   ledInit();
-  }
+ 
+  TIM_Config();
+
+  motor_RCC_Configuration();
   motor_GPIO_Configuration();
   motorHandler();
-  TIM_Config();
+
+  DEBUG = 1;
+if(DEBUG) {
+ ledInit();
+}
+
 
   while (1) {
   }
