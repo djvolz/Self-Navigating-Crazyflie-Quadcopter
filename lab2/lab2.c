@@ -264,16 +264,16 @@ void TIM3_IRQHandler(void){
  // redLedToggle();
  // motorSwitch();
 
-    capture = TIM_GetCapture3(TIM3);
-    TIM_SetCompare3(TIM3, (capture + T3_CCR1_Val) % TIM3_Period);
+    capture = TIM_GetCapture1(TIM3);
+    TIM_SetCompare1(TIM3, (capture + T3_CCR1_Val) % TIM3_Period);
   }
   if(TIM_GetITStatus(TIM3, TIM_IT_CC2) != RESET)
   {
     TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
     //redLedToggle();
 
-    capture = TIM_GetCapture3(TIM3);
-    TIM_SetCompare3(TIM3, (capture + T3_CCR2_Val) % TIM3_Period);
+    capture = TIM_GetCapture2(TIM3);
+    TIM_SetCompare2(TIM3, (capture + T3_CCR2_Val) % TIM3_Period);
   }
 
 }
