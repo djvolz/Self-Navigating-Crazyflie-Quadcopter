@@ -38,7 +38,7 @@ int TIM2_Period = 9600-1;
 int TIM3_Period = 666-1;
 uint16_t capture = 0;
 
-  int divider = 65573;
+  int divider = 655;
   int divider_count_1 = 0;
   int divider_count_2 = 0;
   int divider_count_3 = 0;
@@ -53,7 +53,9 @@ ErrorStatus HSEStartUpStatus;
 uint32_t SystemCoreClock = SYSCLK_FREQ_72MHz;        /*!< System Clock Frequency (Core Clock) */
 void SetSysClockTo72(void);
 void motorSwitch(MotorSpeeds*);
-MotorSpeeds* p_motorSpeedsPtr;
+
+MotorSpeeds p_motorSpeeds;
+
 
 void ledInit(void) {
   // Initialize GPIO pin for green LED
@@ -151,16 +153,16 @@ void redLedToggle(void){
 }
 
 void motorSwitch(MotorSpeeds* p_motorSpeedsPtr) {
-  /*
+  
   //motor 1
-  TIM3->CCR3 = 63*p_motorSpeedsPtr->m1;
+  TIM3->CCR3 = 63*(p_motorSpeedsPtr->m1);
   //motor 2
-  TIM3->CCR4 = 63*p_motorSpeedsPtr->m2;
+  TIM3->CCR4 = 63*(p_motorSpeedsPtr->m2);
   //motor 4
-  TIM4->CCR3 = 63*p_motorSpeedsPtr->m4;
+  TIM4->CCR3 = 63*(p_motorSpeedsPtr->m4);
   //motor 3
-  TIM4->CCR4 = 63*p_motorSpeedsPtr->m3;
-  */
+  TIM4->CCR4 = 63*(p_motorSpeedsPtr->m3);
+  /*
  if(motorSelected == 0){
    TIM3->CCR4 = 0;
    TIM4->CCR3 = 63;
@@ -180,7 +182,7 @@ void motorSwitch(MotorSpeeds* p_motorSpeedsPtr) {
    TIM3->CCR3 = 0;
    TIM3->CCR4 = 63;
    motorSelected = 0;
- } 
+ } */
 }
 
 /**
@@ -210,7 +212,7 @@ void TIM2_IRQHandler(void)
   if(TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET)
   {
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
-    //redLedToggle();
+    redLedToggle();
 
     capture = TIM_GetCapture2(TIM2);
     TIM_SetCompare2(TIM2, (capture + T2_CCR2_Val) % TIM2_Period);
@@ -220,13 +222,16 @@ void TIM2_IRQHandler(void)
   if(TIM_GetITStatus(TIM2, TIM_IT_CC3) != RESET)
   {
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC3);
-    ledToggle();
-    //updatePid(p_motorSpeedsPtr);
-    motorSwitch(p_motorSpeedsPtr);
-   // calculateOrientation(); 
-
     capture = TIM_GetCapture3(TIM2);
     TIM_SetCompare3(TIM2, (capture + T2_CCR3_Val) % TIM2_Period);
+ 
+    ledToggle();
+    updatePid(&p_motorSpeeds);
+    motorSwitch(&p_motorSpeeds);
+   // calculateOrientation(); 
+  
+    calculateOrientation(); 
+
   }
 }
 void TIM3_IRQHandler(void)
@@ -236,7 +241,14 @@ void TIM3_IRQHandler(void)
   if(divider_count_1 > divider) 
   {
     divider_count_1 = 0;
-    redLedToggle();
+    divider_count_2++;
+    if(divider_count_2 > 9){
+      divider_count_2 = 0;
+      //do 10 Hz things here
+      refreshSensorData();
+    }
+    //do 100 Hz things here
+    detectEmergency();
   }
 }
 
@@ -484,6 +496,7 @@ int main(void) {
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE); 
   GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST , ENABLE);
+  
  
   TIM2_Config();
 
