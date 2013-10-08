@@ -5,7 +5,7 @@ Part 1 System Init
 
 Briefly explain the clock path from start to finish (crystal to SYSCLK), including explanations for all your major register configurations. 
 
-  The clock path begins by selecting the High-speed external clock signal (HSE).  It continues to the HSE OSC 16 MHz.  Then PLLSRC, PLLXTPRE, PLLMUL bits are reset.  The PLLCLK is then selected where it is at its max of 72 MHz in our program as the SYSCLK.
+The clock path begins by selecting the High-speed external clock signal (HSE).  It continues to the HSE OSC 16 MHz.  Then PLLSRC, PLLXTPRE, PLLMUL bits are reset.  The PLLCLK is then selected where it is at its max of 72 MHz in our program as the SYSCLK.
 
 
 
