@@ -38,7 +38,7 @@ int TIM2_Period = 9600-1;
 int TIM3_Period = 666-1;
 uint16_t capture = 0;
 
-  int divider = 3279;
+  int divider = 655;
   int divider_count_1 = 0;
   int divider_count_2 = 0;
   int divider_count_3 = 0;
@@ -52,7 +52,10 @@ ErrorStatus HSEStartUpStatus;
 #define SYSCLK_FREQ_72MHz  72000000
 uint32_t SystemCoreClock = SYSCLK_FREQ_72MHz;        /*!< System Clock Frequency (Core Clock) */
 void SetSysClockTo72(void);
-void motorSwitch(void);
+void motorSwitch(MotorSpeeds*);
+
+MotorSpeeds p_motorSpeeds;
+
 
 void ledInit(void) {
   // Initialize GPIO pin for green LED
@@ -149,7 +152,17 @@ void redLedToggle(void){
 
 }
 
-void motorSwitch(void) {
+void motorSwitch(MotorSpeeds* p_motorSpeedsPtr) {
+  
+  //motor 1
+  TIM3->CCR3 = 63*(p_motorSpeedsPtr->m1);
+  //motor 2
+  TIM3->CCR4 = 63*(p_motorSpeedsPtr->m2);
+  //motor 4
+  TIM4->CCR3 = 63*(p_motorSpeedsPtr->m4);
+  //motor 3
+  TIM4->CCR4 = 63*(p_motorSpeedsPtr->m3);
+  /*
  if(motorSelected == 0){
    TIM3->CCR4 = 0;
    TIM4->CCR3 = 63;
@@ -169,7 +182,7 @@ void motorSwitch(void) {
    TIM3->CCR3 = 0;
    TIM3->CCR4 = 63;
    motorSelected = 0;
- }
+ } */
 }
 
 /**
@@ -199,67 +212,43 @@ void TIM2_IRQHandler(void)
   if(TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET)
   {
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
-  //  redLedToggle();
+    redLedToggle();
 
     capture = TIM_GetCapture2(TIM2);
     TIM_SetCompare2(TIM2, (capture + T2_CCR2_Val) % TIM2_Period);
   }
+  
+  // 1 Hz
+  if(TIM_GetITStatus(TIM2, TIM_IT_CC3) != RESET)
+  {
+    TIM_ClearITPendingBit(TIM2, TIM_IT_CC3);
+    capture = TIM_GetCapture3(TIM2);
+    TIM_SetCompare3(TIM2, (capture + T2_CCR3_Val) % TIM2_Period);
+ 
+    ledToggle();
+    updatePid(&p_motorSpeeds);
+    motorSwitch(&p_motorSpeeds);
+   // calculateOrientation(); 
+  
+    calculateOrientation(); 
+
+  }
 }
 void TIM3_IRQHandler(void)
 {
-
-  //10Hz
-  /* Clear TIM2 update interrupt */
-  //TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-  //redLedToggle();
-  MotorSpeeds* p_motorSpeedsPtr;
-  if (TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET)
+  TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+  divider_count_1++;
+  if(divider_count_1 > divider) 
   {
-    TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
-	divider_count_1++;
-	if(divider_count_1 > divider){
-		//do stuff
-		ledToggle();
-		divider_count_1 = 0;
-	}
-	
-    capture = TIM_GetCapture1(TIM3);
-    TIM_SetCompare1(TIM3, (capture + T3_CCR1_Val) % TIM3_Period);
-  }
-  //100Hz
-  if(TIM_GetITStatus(TIM3, TIM_IT_CC2) != RESET)
-  {
-    TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
-	divider_count_2++;
-	if(divider_count_2 > (divider/10)){
-		//do stuff
-		redLedToggle();
-		divider_count_2 = 0;
-	}
-    capture = TIM_GetCapture2(TIM3);
-    TIM_SetCompare2(TIM3, (capture + T3_CCR2_Val) % TIM3_Period);
-  }
-  
-  //1Hz
-  /* Clear TIM2 update interrupt */
-  //TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-  //redLedToggle();
-  if (TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET)
-  {
-    TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
-	divider_count_3++;
-	if(divider_count_3 > divider*10){
-		//do stuff
-		motorSwitch();
-		
-		//updateMotorSpeeds(
-		
-		calculateOrientation();
-		divider_count_3 = 0;
-	}
-	
-    capture = TIM_GetCapture1(TIM3);
-    TIM_SetCompare1(TIM3, (capture + T3_CCR1_Val) % TIM3_Period);
+    divider_count_1 = 0;
+    divider_count_2++;
+    if(divider_count_2 > 9){
+      divider_count_2 = 0;
+      //do 10 Hz things here
+      refreshSensorData();
+    }
+    //do 100 Hz things here
+    detectEmergency();
   }
 }
 
@@ -522,6 +511,6 @@ if(DEBUG) {
 
 
   while (1) {
+    logDebugInfo();
   }
 }
-
