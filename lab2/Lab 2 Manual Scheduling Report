@@ -1,0 +1,24 @@
+Lab 2 Manual Scheduling Report
+by Reed Jones, Daniel Volz
+
+Part 1 System Init
+
+Briefly explain the clock path from start to finish (crystal to SYSCLK), including explanations for all your major register configurations. 
+
+  The clock path begins by selecting the High-speed external clock signal (HSE).  It continues to the HSE OSC 16 MHz.  Then PLLSRC, PLLXTPRE, PLLMUL bits are reset.  The PLLCLK is then selected where it is at its max of 72 MHz in our program as the SYSCLK.
+
+
+
+Part 2 Motors
+
+Describe how you determined your PWM frequency.  Also describe how you would calculate CCR1 values for motors off, %50, and %100.
+
+The TIM3 is running at 36 KHz: TIM3 Frequency = TIM3 counter clock/(ARR + 1) = 24 MHz / 666 = 36 KHz.  We determined our PWM frequency with a 10% duty cycle because that gave us a safe motor spin.  In order to set CCR1 values for motors off, set CCR1 to 0.  For 50% set CCR1 to half the period of the timer period.  For 100% set CCR1 to the period of the timer period.
+
+
+
+Part 3 Manual Scheduling
+
+Describe how a RTOS would make scheduling easier.  What complications could arise if the high priority tasks had heavy computational requirements?
+
+A RTOS system would make scheduling easier because it would introduce automatic scheduling, rather than having to handle scheduling and priorities manually in our code.  If a high priority task has heavy computational requirements it can cause complications because its priority will pause lower priority tasks in order to run.  Due to its heavy computational requirements, it will cause the lower priority tasks to be paused for longer while the high priority task completes.
