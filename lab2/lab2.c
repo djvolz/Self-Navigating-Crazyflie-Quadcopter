@@ -35,7 +35,7 @@ int TIM2_Period = 4800-1;
 int TIM3_Period = 666-1;
 uint16_t capture = 0;
 
-  int divider = 32790;
+  int divider = 3279;
   int divider_count_1 = 0;
   int divider_count_2 = 0;
   int divider_count_3 = 0;
@@ -49,8 +49,7 @@ ErrorStatus HSEStartUpStatus;
 #define SYSCLK_FREQ_72MHz  72000000
 uint32_t SystemCoreClock = SYSCLK_FREQ_72MHz;        /*!< System Clock Frequency (Core Clock) */
 void SetSysClockTo72(void);
-void motorSwitch(MotorSpeeds*);
-MotorSpeeds* p_motorSpeedsPtr;
+void motorSwitch(void);
 
 void ledInit(void) {
   // Initialize GPIO pin for green LED
@@ -144,17 +143,7 @@ void redLedToggle(void){
 
 }
 
-void motorSwitch(MotorSpeeds* p_motorSpeedsPtr) {
-	/*
-	//motor 1
-	TIM3->CCR3 = 63*p_motorSpeedsPtr->m1;
-	//motor 2
-	TIM3->CCR4 = 63*p_motorSpeedsPtr->m2;
-	//motor 4
-	TIM4->CCR3 = 63*p_motorSpeedsPtr->m4;
-	//motor 3
-	TIM4->CCR4 = 63*p_motorSpeedsPtr->m3;
-	*/
+void motorSwitch(void) {
  if(motorSelected == 0){
    TIM3->CCR4 = 0;
    TIM4->CCR3 = 63;
@@ -174,7 +163,7 @@ void motorSwitch(MotorSpeeds* p_motorSpeedsPtr) {
    TIM3->CCR3 = 0;
    TIM3->CCR4 = 63;
    motorSelected = 0;
- } 
+ }
 }
 
 /**
@@ -194,7 +183,7 @@ void TIM2_IRQHandler(void)
  //    ledToggle();
      //redLedToggle();
  // redLedToggle();
- // motorSwitch(p_motorSpeedsPtr);
+  motorSwitch();
 
     capture = TIM_GetCapture1(TIM2);
     TIM_SetCompare1(TIM2, (capture + T2_CCR1_Val) % TIM2_Period);
@@ -215,15 +204,14 @@ void TIM3_IRQHandler(void)
   /* Clear TIM2 update interrupt */
   //TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
   //redLedToggle();
-  
+  MotorSpeeds* p_motorSpeedsPtr;
   if (TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET)
   {
-    //TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
+    TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
 	divider_count_1++;
 	if(divider_count_1 > divider){
 		//do stuff
-		//ledToggle();
-		//refreshSensorData();
+		ledToggle();
 		divider_count_1 = 0;
 	}
 	
@@ -233,12 +221,11 @@ void TIM3_IRQHandler(void)
   //100Hz
   if(TIM_GetITStatus(TIM3, TIM_IT_CC2) != RESET)
   {
-    //TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
+    TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
 	divider_count_2++;
 	if(divider_count_2 > (divider/10)){
 		//do stuff
 		redLedToggle();
-		//detectEmergency();
 		divider_count_2 = 0;
 	}
     capture = TIM_GetCapture2(TIM3);
@@ -251,24 +238,21 @@ void TIM3_IRQHandler(void)
   //redLedToggle();
   if (TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET)
   {
-    //TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
+    TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
 	divider_count_3++;
 	if(divider_count_3 > divider*10){
 		//do stuff
-	//	updatePid(p_motorSpeedsPtr);
-	ledToggle();
-		motorSwitch(p_motorSpeedsPtr);	
+		motorSwitch();
 		
-	//	calculateOrientation();
+		//updateMotorSpeeds(
+		
+		calculateOrientation();
 		divider_count_3 = 0;
 	}
 	
     capture = TIM_GetCapture1(TIM3);
     TIM_SetCompare1(TIM3, (capture + T3_CCR1_Val) % TIM3_Period);
   }
-  
-  TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
-  TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
 }
 
 /**
@@ -485,8 +469,8 @@ void motorHandler(void)
 
   /* Enable the TIM2 Interrupt */
   NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 
