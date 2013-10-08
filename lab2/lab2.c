@@ -19,28 +19,33 @@
 // Motor handling
 TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 TIM_OCInitTypeDef  TIM_OCInitStructure;
+
 uint16_t T2_CCR1_Val = 0;   //.25 Hz
 uint16_t T2_CCR2_Val = 4800;  // .5 Hz
 uint16_t T2_CCR3_Val = 2400; // 1Hz
 
 uint16_t T3_CCR1_Val = 0;
 
-uint16_t CCR1_Val = 63;
-uint16_t CCR2_Val = 63;
-uint16_t CCR3_Val = 63;
-uint16_t CCR4_Val = 63;
+/* Safe spinning speed. About 10% */
+#define CCR1_Val 63
+#define CCR2_Val 63
+#define CCR3_Val 63
+#define CCR4_Val 63
+
 uint16_t PrescalerValue = 0;
 
 int TIM2_Period = 9600-1;
+
+/* Used to set frequency of TIM2 channels. */
 uint16_t capture = 0;
 
+/* Used to generate 100 Hz signal from TIM3. */
 int divider = 655;
 int divider_count_1 = 0;
 int divider_count_2 = 0;
 
 /* LED will turn on if DEBUG set to 1 */
 int DEBUG = 0;
-int motorSelected = 0;
 
 
 ErrorStatus HSEStartUpStatus;
@@ -228,7 +233,7 @@ void SystemInit (void)
   RCC->CR |= (uint32_t)0x00000001;  
 
   /* Reset SW, HPRE, PPRE1, PPRE2, ADCPRE and MCO bits */
-  RCC->CFGR &= (uint32_t);
+  RCC->CFGR &= (uint32_t)0xF8FF0000;
   
 
   /* Reset HSEON, CSSON and PLLON bits */
