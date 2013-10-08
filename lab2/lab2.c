@@ -19,8 +19,11 @@
 // Motor handling
 TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 TIM_OCInitTypeDef  TIM_OCInitStructure;
-uint16_t T2_CCR1_Val = 0;
-uint16_t T2_CCR2_Val = 2400;
+uint16_t T2_CCR1_Val = 0;   //.25 Hz
+uint16_t T2_CCR2_Val = 4800;  // .5 Hz
+uint16_t T2_CCR3_Val = 2400; // 1Hz
+//uint16_t T2_CCR4_Val = 12;
+
 uint16_t T3_CCR1_Val = 0;
 uint16_t T3_CCR2_Val = 0;
 
@@ -31,11 +34,11 @@ uint16_t CCR3_Val = 63;
 uint16_t CCR4_Val = 63;
 uint16_t PrescalerValue = 0;
 
-int TIM2_Period = 4800-1;
+int TIM2_Period = 9600-1;
 int TIM3_Period = 666-1;
 uint16_t capture = 0;
 
-  int divider = 32790;
+  int divider = 3270;
   int divider_count_1 = 0;
   int divider_count_2 = 0;
   int divider_count_3 = 0;
@@ -73,7 +76,7 @@ void TIM2_Config(void)
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
   /* TIM2 configuration */
-  TIM_TimeBaseStructure.TIM_Period = 4800 - 1;       
+  TIM_TimeBaseStructure.TIM_Period = 9600 - 1;       
   TIM_TimeBaseStructure.TIM_Prescaler = ((SystemCoreClock/1200) - 1);
   TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;    
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
@@ -91,8 +94,11 @@ void TIM2_Config(void)
 
   TIM_OCInitStructure.TIM_Pulse = T2_CCR2_Val;
   TIM_OC2Init(TIM2, &TIM_OCInitStructure);
-
   TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Disable);
+  
+  TIM_OCInitStructure.TIM_Pulse = T2_CCR3_Val;
+  TIM_OC3Init(TIM2, &TIM_OCInitStructure);
+  TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
 
   /* Immediate load of TIM2,TIM3 and TIM4 Precaler values */
   //TIM_PrescalerConfig(TIM2, ((SystemCoreClock/1200) - 1), TIM_PSCReloadMode_Immediate);
@@ -112,7 +118,7 @@ void TIM2_Config(void)
   NVIC_Init(&NVIC_InitStructure);
 
   /* Enable TIM2, TIM3 and TIM4 Update interrupts */
-  TIM_ITConfig(TIM2, TIM_IT_CC1 | TIM_IT_CC2, ENABLE);
+  TIM_ITConfig(TIM2, TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3, ENABLE);
 
   /* TIM2, TIM3 and TIM4 enable counters */
   TIM_Cmd(TIM2, ENABLE);
@@ -186,89 +192,52 @@ void TIM2_IRQHandler(void)
 {
   /* Clear TIM2 update interrupt */
   //TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+  // 0.25 Hz
   if (TIM_GetITStatus(TIM2, TIM_IT_CC1) != RESET)
   {
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
 
     /* LED3 toggling with frequency = 219.7 Hz */
- //    ledToggle();
-     //redLedToggle();
+     //ledToggle();
+   //  redLedToggle();
  // redLedToggle();
  // motorSwitch(p_motorSpeedsPtr);
 
     capture = TIM_GetCapture1(TIM2);
     TIM_SetCompare1(TIM2, (capture + T2_CCR1_Val) % TIM2_Period);
   }
+  // 0.5 Hz
   if(TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET)
   {
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
-  //  redLedToggle();
+    //redLedToggle();
 
     capture = TIM_GetCapture2(TIM2);
     TIM_SetCompare2(TIM2, (capture + T2_CCR2_Val) % TIM2_Period);
   }
+  
+  // 1 Hz
+  if(TIM_GetITStatus(TIM2, TIM_IT_CC3) != RESET)
+  {
+    TIM_ClearITPendingBit(TIM2, TIM_IT_CC3);
+    ledToggle();
+    //updatePid(p_motorSpeedsPtr);
+    motorSwitch(p_motorSpeedsPtr);
+   // calculateOrientation(); 
+
+    capture = TIM_GetCapture3(TIM2);
+    TIM_SetCompare3(TIM2, (capture + T2_CCR3_Val) % TIM2_Period);
+  }
 }
 void TIM3_IRQHandler(void)
 {
-
-  //10Hz
-  /* Clear TIM2 update interrupt */
-  //TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-  //redLedToggle();
-  
-  if (TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET)
-  {
-    //TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
+	TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 	divider_count_1++;
-	if(divider_count_1 > divider){
-		//do stuff
-		//ledToggle();
-		//refreshSensorData();
-		divider_count_1 = 0;
-	}
-	
-    capture = TIM_GetCapture1(TIM3);
-    TIM_SetCompare1(TIM3, (capture + T3_CCR1_Val) % TIM3_Period);
-  }
-  //100Hz
-  if(TIM_GetITStatus(TIM3, TIM_IT_CC2) != RESET)
-  {
-    //TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
-	divider_count_2++;
-	if(divider_count_2 > (divider/10)){
-		//do stuff
+	if(divider_count_1 > divider) 
+	{
+		divider = 0;
 		redLedToggle();
-		//detectEmergency();
-		divider_count_2 = 0;
 	}
-    capture = TIM_GetCapture2(TIM3);
-    TIM_SetCompare2(TIM3, (capture + T3_CCR2_Val) % TIM3_Period);
-  }
-  
-  //1Hz
-  /* Clear TIM2 update interrupt */
-  //TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-  //redLedToggle();
-  if (TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET)
-  {
-    //TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
-	divider_count_3++;
-	if(divider_count_3 > divider*10){
-		//do stuff
-	//	updatePid(p_motorSpeedsPtr);
-	ledToggle();
-		motorSwitch(p_motorSpeedsPtr);	
-		
-	//	calculateOrientation();
-		divider_count_3 = 0;
-	}
-	
-    capture = TIM_GetCapture1(TIM3);
-    TIM_SetCompare1(TIM3, (capture + T3_CCR1_Val) % TIM3_Period);
-  }
-  
-  TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
-  TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
 }
 
 /**
@@ -485,13 +454,13 @@ void motorHandler(void)
 
   /* Enable the TIM2 Interrupt */
   NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 
   /* Enable TIM2, TIM3 and TIM4 Update interrupts */
-  TIM_ITConfig(TIM3, TIM_IT_CC1 | TIM_IT_CC2, ENABLE);
+  TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
 
 
   /* TIM3 enable counter */
@@ -529,6 +498,7 @@ if(DEBUG) {
 
 
   while (1) {
+	  logDebugInfo();
   }
 }
 
