@@ -38,7 +38,7 @@ int TIM2_Period = 9600-1;
 int TIM3_Period = 666-1;
 uint16_t capture = 0;
 
-  int divider = 3270;
+  int divider = 65573;
   int divider_count_1 = 0;
   int divider_count_2 = 0;
   int divider_count_3 = 0;
@@ -112,8 +112,8 @@ void TIM2_Config(void)
 
   /* Enable the TIM2 Interrupt */
   NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 
@@ -235,7 +235,7 @@ void TIM3_IRQHandler(void)
   divider_count_1++;
   if(divider_count_1 > divider) 
   {
-    divider = 0;
+    divider_count_1 = 0;
     redLedToggle();
   }
 }
