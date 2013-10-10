@@ -22,12 +22,12 @@ all:
 	$(CC) $(CFLAGS) $(STM_STARTUP)/startup_stm32f10x_md.s lab3.c $(STM_STD_PERIF)/src/stm32f10x_gpio.c $(STM_STD_PERIF)/src/stm32f10x_rcc.c liblab3.a -o lab3.elf
 
 clean:
-	rm -rf *o lab2
+	rm -rf *o lab3
 
 # program elf into crazyflie flash memory with busblaster
 flash:
 	openocd -d0 -f interface/busblaster.cfg -f target/stm32f1x.cfg -c init -c targets -c "reset halt" \
-                 -c "flash write_image erase lab2.elf" -c "verify_image lab2.elf" -c "reset run" -c shutdown
+                 -c "flash write_image erase lab3.elf" -c "verify_image lab3.elf" -c "reset run" -c shutdown
 
 # Start openocd, so we can use it with gdb 
 openocd:
