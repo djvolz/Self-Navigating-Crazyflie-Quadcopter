@@ -34,7 +34,6 @@ uint16_t T3_CCR1_Val = 0;
 
 uint16_t PrescalerValue = 0;
 
-/* Clock rate 1200. 1200/9600 * 2 = .25 Hz */
 int TIM2_Period = 9600-1;
 
 /* Used to set frequency of TIM2 channels. */
@@ -89,7 +88,7 @@ void TIM2_Config(void)
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
   /* TIM2 configuration */
-  TIM_TimeBaseStructure.TIM_Period = TIM2_Period;       
+  TIM_TimeBaseStructure.TIM_Period = 9600 - 1;       
   TIM_TimeBaseStructure.TIM_Prescaler = ((SystemCoreClock/1200) - 1);
   TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;    
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
@@ -166,13 +165,13 @@ void redLedToggle(void){
 void motorSwitch(MotorSpeeds* p_motorSpeedsPtr)
 {  
   //motor 1
-  TIM3->CCR3 = CCR3_Val*(p_motorSpeedsPtr->m1);
+  TIM3->CCR3 = 63*(p_motorSpeedsPtr->m1);
   //motor 2
-  TIM3->CCR4 = CCR4_Val*(p_motorSpeedsPtr->m2);
+  TIM3->CCR4 = 63*(p_motorSpeedsPtr->m2);
   //motor 4
-  TIM4->CCR3 = CCR3_Val*(p_motorSpeedsPtr->m4);
+  TIM4->CCR3 = 63*(p_motorSpeedsPtr->m4);
   //motor 3
-  TIM4->CCR4 = CCR4_Val*(p_motorSpeedsPtr->m3);
+  TIM4->CCR4 = 63*(p_motorSpeedsPtr->m3);
 }
 
 /**
