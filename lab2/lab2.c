@@ -19,99 +19,66 @@
 // Motor handling
 TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 TIM_OCInitTypeDef  TIM_OCInitStructure;
+uint16_t T2_CCR1_Val = 0;
+uint16_t T2_CCR2_Val = 600;
 
-uint16_t T2_CCR1_Val = 0;   //.25 Hz
-uint16_t T2_CCR2_Val = 4800;  // .5 Hz
-uint16_t T2_CCR3_Val = 2400; // 1Hz
-
-uint16_t T3_CCR1_Val = 0;
-
-/* Safe spinning speed. About 10% */
-#define CCR1_Val 63
-#define CCR2_Val 63
-#define CCR3_Val 63
-#define CCR4_Val 63
-
+uint16_t CCR1_Val = 63;
+uint16_t CCR2_Val = 63;
+uint16_t CCR3_Val = 63;
+uint16_t CCR4_Val = 63;
 uint16_t PrescalerValue = 0;
 
-int TIM2_Period = 9600-1;
-
-/* Used to set frequency of TIM2 channels. */
 uint16_t capture = 0;
 
-/* Used to generate 100 Hz signal from TIM3. */
-int divider = 655;
-int divider_count_1 = 0;
-int divider_count_2 = 0;
 
-/* LED will turn on if DEBUG set to 1 */
-int DEBUG = 0;
+
+  /* LED will turn on if DEBUG set to 1 */
+  int DEBUG = 0;
+  int motorSelected = 0;
 
 
 ErrorStatus HSEStartUpStatus;
 #define SYSCLK_FREQ_72MHz  72000000
 uint32_t SystemCoreClock = SYSCLK_FREQ_72MHz;        /*!< System Clock Frequency (Core Clock) */
 void SetSysClockTo72(void);
-void motorSwitch(MotorSpeeds*);
+void motorSwitch(void);
 
-MotorSpeeds p_motorSpeeds;
-
-
-void ledInit(void) 
-{
-  /* Green LED */
-
-  /* Initialize GPIO pin for green LED. */
+void ledInit(void) {
+  // Initialize GPIO pin for green LED
   GPIO_InitTypeDef initStruct;
   initStruct.GPIO_Pin = GREEN_LED;
   initStruct.GPIO_Speed = GPIO_Speed_50MHz;
   initStruct.GPIO_Mode = GPIO_Mode_Out_OD;
   GPIO_Init(GPIOB, &initStruct);
-
-  /* Red LED */
-
-  /* Disables JTRST to enable Red LED. */
-  GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST , ENABLE);
-
-  initStruct.GPIO_Pin = RED_LED;
-  GPIO_Init(GPIOB, &initStruct);
 }
 
-/* Configure timer 2 for interrupts. */
-void TIM2_Config(void)
+void TIM_Config(void)
 { 
   TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
   TIM_OCInitTypeDef  TIM_OCInitStructure;
   NVIC_InitTypeDef  NVIC_InitStructure;
 
-  /* Enable TIM2 clocks */
+  /* Enable TIM2, TIM3 and TIM4 clocks */
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
   /* TIM2 configuration */
-  TIM_TimeBaseStructure.TIM_Period = 9600 - 1;       
+  TIM_TimeBaseStructure.TIM_Period = 2400 - 1;       
   TIM_TimeBaseStructure.TIM_Prescaler = ((SystemCoreClock/1200) - 1);
   TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;    
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
   TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+  TIM_OCStructInit(&TIM_OCInitStructure);
   
   /* Output Compare Timing Mode configuration: Channel1 */
-  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_Toggle;
-  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-  TIM_OCInitStructure.TIM_Pulse = T2_CCR1_Val;
-  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
+  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_Timing;
+  TIM_OCInitStructure.TIM_Pulse = T2_CCR1_Val; 
   TIM_OC1Init(TIM2, &TIM_OCInitStructure);
 
-  TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Disable);
-
-  /* Configure channel 2 for 0.5 Hz */
   TIM_OCInitStructure.TIM_Pulse = T2_CCR2_Val;
   TIM_OC2Init(TIM2, &TIM_OCInitStructure);
-  TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Disable);
-  
-  /* Configure channel 3 for 1 Hz */
-  TIM_OCInitStructure.TIM_Pulse = T2_CCR3_Val;
-  TIM_OC3Init(TIM2, &TIM_OCInitStructure);
-  TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
+
+  /* Immediate load of TIM2,TIM3 and TIM4 Precaler values */
+  TIM_PrescalerConfig(TIM2, ((SystemCoreClock/1200) - 1), TIM_PSCReloadMode_Immediate);
 
   /* Clear TIM2, TIM3 and TIM4 update pending flags */
   TIM_ClearFlag(TIM2, TIM_FLAG_Update);
@@ -121,19 +88,19 @@ void TIM2_Config(void)
 
   /* Enable the TIM2 Interrupt */
   NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 
-  /* Enable TIM2 Update interrupts */
-  TIM_ITConfig(TIM2, TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3, ENABLE);
+  /* Enable TIM2, TIM3 and TIM4 Update interrupts */
+  TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 
-  /* TIM2 enable counters */
+  /* TIM2, TIM3 and TIM4 enable counters */
   TIM_Cmd(TIM2, ENABLE);
 }
 
-/* Turn off and on green LED. */
+
 void ledToggle(void) {
   static unsigned int  state = 0;
   if (state) {
@@ -146,8 +113,6 @@ void ledToggle(void) {
     state ^= 1;
   }
 }
-
-/* Turn off and on red LED. */
 void redLedToggle(void){
   static unsigned int  state = 0;
   if (state) {
@@ -159,20 +124,33 @@ void redLedToggle(void){
     GPIO_ResetBits(GPIOB, RED_LED);
     state ^= 1;
   }
+
 }
 
-/* Normalize motor speeds. */
-void motorSwitch(MotorSpeeds* p_motorSpeedsPtr)
-{  
-  //motor 1
-  TIM3->CCR3 = 63*(p_motorSpeedsPtr->m1);
-  //motor 2
-  TIM3->CCR4 = 63*(p_motorSpeedsPtr->m2);
-  //motor 4
-  TIM4->CCR3 = 63*(p_motorSpeedsPtr->m4);
-  //motor 3
-  TIM4->CCR4 = 63*(p_motorSpeedsPtr->m3);
+void motorSwitch(void) {
+ if(motorSelected == 0){
+   TIM3->CCR4 = 0;
+   TIM4->CCR3 = 63;
+   motorSelected++;
+ }
+ else if(motorSelected == 1){
+   TIM4->CCR3 = 0;
+   TIM4->CCR4 = 63;
+   motorSelected++;
+ }
+ else if(motorSelected == 2){
+   TIM4->CCR4 = 0;
+   TIM3->CCR3 = 63;
+   motorSelected++;
+ }
+ else if(motorSelected == 3){
+   TIM3->CCR3 = 0;
+   TIM3->CCR4 = 63;
+   motorSelected = 0;
+ }
 }
+
+
 
 /**
   * @brief  This function handles TIM2 global interrupt request.
@@ -182,41 +160,29 @@ void motorSwitch(MotorSpeeds* p_motorSpeedsPtr)
 void TIM2_IRQHandler(void)
 {
   /* Clear TIM2 update interrupt */
-
-  // 0.25 Hz
-  if (TIM_GetITStatus(TIM2, TIM_IT_CC1) != RESET)
-  {
-    TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
-
-    /* LED3 toggling with frequency = 219.7 Hz */
-    capture = TIM_GetCapture1(TIM2);
-    TIM_SetCompare1(TIM2, (capture + T2_CCR1_Val) % TIM2_Period);
-  }
-
-  // 0.5 Hz
-  if(TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET)
-  {
-    TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
-    redLedToggle();
-
-    capture = TIM_GetCapture2(TIM2);
-    TIM_SetCompare2(TIM2, (capture + T2_CCR2_Val) % TIM2_Period);
-  }
+  TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
   
-  // 1 Hz
-  if(TIM_GetITStatus(TIM2, TIM_IT_CC3) != RESET)
-  {
-    TIM_ClearITPendingBit(TIM2, TIM_IT_CC3);
-    capture = TIM_GetCapture3(TIM2);
-    TIM_SetCompare3(TIM2, (capture + T2_CCR3_Val) % TIM2_Period);
- 
-    ledToggle();
-    updatePid(&p_motorSpeeds);
-    motorSwitch(&p_motorSpeeds);
-    calculateOrientation(); 
-  }
+  ledToggle();
+  //redLedToggle();
+  motorSwitch();
 }
 
+
+
+
+
+
+
+
+
+
+/**
+  * @}
+  */
+
+/** @addtogroup STM32F10x_System_Private_Functions
+  * @{
+  */
 
 /**
   * @brief  Setup the microcontroller system
@@ -247,6 +213,7 @@ void SystemInit (void)
 
   /* Disable all interrupts and clear pending bits  */
   RCC->CIR = 0x00FF0000;
+
 
   SetSysClockTo72();
 }
@@ -326,7 +293,7 @@ void motor_GPIO_Configuration(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
 
-  /* GPIOA Configuration:TIM3 Channel 1, 2, 3 and 4 as alternate function push-pull */
+  /* GPIOA Configuration:TIM3 Channel1, 2, 3 and 4 as alternate function push-pull */
   DEBUG = 1;
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -339,7 +306,6 @@ void motor_GPIO_Configuration(void)
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
-/* motorHandler uses Timers 3 and 4 to initialize the PWM for the motors. */
 void motorHandler(void)
 {
   /* -----------------------------------------------------------------------
@@ -358,13 +324,10 @@ void motorHandler(void)
     TIM3 Channel3 duty cycle = (TIM3_CCR3/ TIM3_ARR)* 100 = 25%
     TIM3 Channel4 duty cycle = (TIM3_CCR4/ TIM3_ARR)* 100 = 12.5%
   ----------------------------------------------------------------------- */
-  NVIC_InitTypeDef  NVIC_InitStructure;
-
   /* Compute the prescaler value */
   PrescalerValue = (uint16_t) (SystemCoreClock / 24000000) - 1;
-
   /* Time base configuration */
-  TIM_TimeBaseStructure.TIM_Period = 732;
+  TIM_TimeBaseStructure.TIM_Period = 665;
   TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
   TIM_TimeBaseStructure.TIM_ClockDivision = 0;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -372,100 +335,54 @@ void motorHandler(void)
   TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
   TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
 
-  /* Output Compare Timing Mode configuration: Channel 1 for interrupts. */
-  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_Toggle;
-  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-  TIM_OCInitStructure.TIM_Pulse = T3_CCR1_Val;
-  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
-  TIM_OC1Init(TIM3, &TIM_OCInitStructure);
-  TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Disable);
-
-  /* PWM1 Mode configuration: Channel 3 */
+  /* PWM1 Mode configuration: Channel1 */
   TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
   TIM_OCInitStructure.TIM_Pulse = 0; // CCR1_Val;
   TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 
   TIM_OC3Init(TIM4, &TIM_OCInitStructure);
+
   TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Enable);
   
 
-  /* PWM1 Mode configuration: Channel 4 */
+  /* PWM1 Mode configuration: Channel2 */
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
   TIM_OCInitStructure.TIM_Pulse = 0; // CCR2_Val;
 
   TIM_OC4Init(TIM4, &TIM_OCInitStructure);
+
   TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
   
 
-  /* PWM1 Mode configuration: Channel 3 */
+  /* PWM1 Mode configuration: Channel3 */
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
   TIM_OCInitStructure.TIM_Pulse = 0; // CCR3_Val;
 
   TIM_OC3Init(TIM3, &TIM_OCInitStructure);
+
   TIM_OC3PreloadConfig(TIM3, TIM_OCPreload_Enable);
 
-  /* PWM1 Mode configuration: Channel 4 */
+  /* PWM1 Mode configuration: Channel4 */
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
   TIM_OCInitStructure.TIM_Pulse = 0; // CCR4_Val;
 
   TIM_OC4Init(TIM3, &TIM_OCInitStructure);
+
   TIM_OC4PreloadConfig(TIM3, TIM_OCPreload_Enable);
 
   TIM_ARRPreloadConfig(TIM3, ENABLE);
-  
-  /* Clear TIM3 update pending flags */
-  TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-
-  /* Configure two bits for preemption priority */
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-
-  /* Enable the TIM2 Interrupt */
-  NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-
-  /* Enable TIM2, TIM3 and TIM4 Update interrupts */
-  TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
-
 
   /* TIM3 enable counter */
   TIM_Cmd(TIM3, ENABLE);
   TIM_Cmd(TIM4, ENABLE);
 }
 
-/* Timer 3 Interrupt */
-void TIM3_IRQHandler(void)
-{
-  /* Start by clearing interrupt flags. */
-  TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-
-  /* Used for timing. */
-  divider_count_1++;
-  if(divider_count_1 > divider) 
-  {
-    /* Used for timing. */
-    divider_count_1 = 0;
-    divider_count_2++;
-    if(divider_count_2 > 9){
-      divider_count_2 = 0;
-
-      //do 10 Hz things here
-      refreshSensorData();
-    }
-
-    //do 100 Hz things here
-    detectEmergency();
-  }
-}
-
 void motor_RCC_Configuration(void)
 {
   /* TIM3 clock enable */
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 | RCC_APB1Periph_TIM4, ENABLE);
-
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 
   /* GPIOA and GPIOB clock enable */
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
@@ -473,34 +390,24 @@ void motor_RCC_Configuration(void)
 }
 
 int main(void) {
-
-  /* Initialize system clocks. */
   SystemInit();
- 
 
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOB, ENABLE); 
+  GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST , ENABLE);
  
-  /* Configure timer 2. */
-  TIM2_Config();
+  TIM_Config();
 
-  /* Enable Timer 3 and Timer 4 clocks and GPIOA and GPIOB clocks. */
   motor_RCC_Configuration();
-
-  /* Set up general purpose I/O pins. */
   motor_GPIO_Configuration();
-
-  /* Initialize motors PWM, timer 3, and timer 4. */
   motorHandler();
 
-  // DEBUG = 1;
-  // if(DEBUG) {
-  //   ledInit();
-  // }
+  DEBUG = 1;
+if(DEBUG) {
+ ledInit();
+}
 
-  ledInit();
 
-  while (1) 
-  {
-    /* Run this low priority function when time is available. */
-    logDebugInfo();
+  while (1) {
   }
 }
+
