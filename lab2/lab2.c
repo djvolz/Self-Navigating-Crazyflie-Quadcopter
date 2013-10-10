@@ -28,6 +28,13 @@ uint16_t CCR3_Val = 63;
 uint16_t CCR4_Val = 63;
 uint16_t PrescalerValue = 0;
 
+<<<<<<< HEAD
+=======
+/* Clock rate 1200. 1200/9600 * 2 = .25 Hz */
+int TIM2_Period = 9600-1;
+
+/* Used to set frequency of TIM2 channels. */
+>>>>>>> 860272c3ff945fef4b7c6b7933bb139f03aa2c38
 uint16_t capture = 0;
 
 
@@ -62,7 +69,11 @@ void TIM_Config(void)
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
   /* TIM2 configuration */
+<<<<<<< HEAD
   TIM_TimeBaseStructure.TIM_Period = 2400 - 1;       
+=======
+  TIM_TimeBaseStructure.TIM_Period = TIM2_Period;       
+>>>>>>> 860272c3ff945fef4b7c6b7933bb139f03aa2c38
   TIM_TimeBaseStructure.TIM_Prescaler = ((SystemCoreClock/1200) - 1);
   TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;    
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
@@ -127,6 +138,7 @@ void redLedToggle(void){
 
 }
 
+<<<<<<< HEAD
 void motorSwitch(void) {
  if(motorSelected == 0){
    TIM3->CCR4 = 0;
@@ -148,6 +160,19 @@ void motorSwitch(void) {
    TIM3->CCR4 = 63;
    motorSelected = 0;
  }
+=======
+/* Normalize motor speeds. */
+void motorSwitch(MotorSpeeds* p_motorSpeedsPtr)
+{  
+  //motor 1
+  TIM3->CCR3 = CCR3_Val*(p_motorSpeedsPtr->m1);
+  //motor 2
+  TIM3->CCR4 = CCR4_Val*(p_motorSpeedsPtr->m2);
+  //motor 4
+  TIM4->CCR3 = CCR3_Val*(p_motorSpeedsPtr->m4);
+  //motor 3
+  TIM4->CCR4 = CCR4_Val*(p_motorSpeedsPtr->m3);
+>>>>>>> 860272c3ff945fef4b7c6b7933bb139f03aa2c38
 }
 
 
