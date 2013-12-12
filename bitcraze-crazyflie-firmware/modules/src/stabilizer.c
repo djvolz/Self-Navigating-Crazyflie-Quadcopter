@@ -169,11 +169,11 @@ LOG_ADD(LOG_FLOAT, y, &gyro.y)
 LOG_ADD(LOG_FLOAT, z, &gyro.z)
 LOG_GROUP_STOP(gyro)
 
-LOG_GROUP_START(magnet)
+LOG_GROUP_START(heading)
 LOG_ADD(LOG_INT16, x, &heading.x)
 LOG_ADD(LOG_INT16, y, &heading.y)
 LOG_ADD(LOG_INT16, z, &heading.z)
-LOG_GROUP_STOP(magnet)
+LOG_GROUP_STOP(heading)
 
 
 // LOG altitude hold PID controller states
