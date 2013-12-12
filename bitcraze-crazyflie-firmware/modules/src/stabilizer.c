@@ -73,7 +73,7 @@
 
 PRIVATE Axis3f gyro; // Gyro axis data in deg/s
 PRIVATE Axis3f acc;  // Accelerometer axis data in mG
-PRIVATE Axis3i16 heading; // Heading axis data in 
+PRIVATE Axis3i16 heading; // Magnetometer axis data in 
 
 PRIVATE float eulerRollActual;
 PRIVATE float eulerPitchActual;
@@ -169,11 +169,11 @@ LOG_ADD(LOG_FLOAT, y, &gyro.y)
 LOG_ADD(LOG_FLOAT, z, &gyro.z)
 LOG_GROUP_STOP(gyro)
 
-LOG_GROUP_START(heading)
+LOG_GROUP_START(magnet)
 LOG_ADD(LOG_INT16, x, &heading.x)
 LOG_ADD(LOG_INT16, y, &heading.y)
 LOG_ADD(LOG_INT16, z, &heading.z)
-LOG_GROUP_STOP(heading)
+LOG_GROUP_STOP(magnet)
 
 
 // LOG altitude hold PID controller states
