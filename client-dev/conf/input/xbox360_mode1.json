@@ -70,7 +70,7 @@
         {
           "scale": 1.0, 
           "type": "Input.BUTTON", 
-          "id": 5, 
+          "id": 9, 
           "key": "althold", 
           "name": "althold"
         }, 
