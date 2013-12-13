@@ -59,6 +59,8 @@ from cfclient.utils.config_manager import ConfigManager
 from cfclient.utils.periodictimer import PeriodicTimer
 from cflib.utils.callbacks import Caller
 
+from cfclient.utils.aicontroller import AiController 
+
 MAX_THRUST = 65000
 
 class JoystickReader:
@@ -68,9 +70,11 @@ class JoystickReader:
     """
     inputConfig = []
 
-    def __init__(self, do_device_discovery=True):
+    # def __init__(self, do_device_discovery=True):
+    def __init__(self, do_device_discovery=True, cf=None):
         # TODO: Should be OS dependant
-        self.inputdevice = PyGameReader()
+        self.inputdevice = AiController(cf)
+        # self.inputdevice = PyGameReader()
         
         self._min_thrust = 0
         self._max_thrust = 0

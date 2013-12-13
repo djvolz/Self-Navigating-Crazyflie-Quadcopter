@@ -59,6 +59,8 @@ from cfclient.utils.config_manager import ConfigManager
 from cfclient.utils.periodictimer import PeriodicTimer
 from cflib.utils.callbacks import Caller
 
+from cfclient.utils.aicontroller import AiController 
+
 MAX_THRUST = 65000
 
 class JoystickReader:
@@ -67,10 +69,14 @@ class JoystickReader:
     ponts to the Crazyflie
     """
     inputConfig = []
+    controller = 0
 
-    def __init__(self, do_device_discovery=True):
+    # def __init__(self, do_device_discovery=True):
+    def __init__(self, do_device_discovery=True, cf=None):
         # TODO: Should be OS dependant
-        self.inputdevice = PyGameReader()
+        self.inputdevice = AiController(cf)
+        JoystickReader.controller = self.inputdevice
+        # self.inputdevice = PyGameReader()
         
         self._min_thrust = 0
         self._max_thrust = 0
@@ -239,7 +245,8 @@ class JoystickReader:
     def read_input(self):
         """Read input data from the selected device"""
         try:
-            data = self.inputdevice.read_input()
+            data = self.inputdevice.readInput()
+            # data = self.inputdevice.read_input()
             roll = data["roll"] * self._max_rp_angle
             pitch = data["pitch"] * self._max_rp_angle
             thrust = data["thrust"]
