@@ -355,13 +355,17 @@ class AiController():
         self.cf.param.set_value( unicode(completename), str(self.cfParams[completename]) )
 
 
-    # def getSignalQuality(self):
-    #     linkQualityValue = None
-    #     linkQualitySignal = pyqtSignal(int)
-    #     # Connect link quality feedback
-    #     self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
-        # self.linkQualitySignal.connect(
-        #             lambda percentage: self.linkQualityValue = percentage)
+    def getSignalQuality(self):
+        linkQualityValue = None
+        linkQualitySignal = pyqtSignal(int)
+        # Connect link quality feedback
+        self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
+        self.linkQualitySignal.connect(
+                    lambda percentage: self.linkQualityValue.value(percentage))
+        print linkQualityValue
+
+        #if(linkQualityValue < 60):
+            # Have the crazyflie fly in the opposite direction.
 
 
 

@@ -178,6 +178,7 @@ class MainUI(QtGui.QMainWindow, main_window_class):
         self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
         self.linkQualitySignal.connect(
                    lambda percentage: self.linkQualityBar.setValue(percentage))
+        
 
         # Set UI state in disconnected buy default
         self.setUIState(UIState.DISCONNECTED)
