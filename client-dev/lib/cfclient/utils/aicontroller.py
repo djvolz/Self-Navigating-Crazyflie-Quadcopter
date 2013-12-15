@@ -102,24 +102,24 @@ class AiController():
             'pid_rate.yaw_kp': 0, 
             'pid_rate.yaw_kd': 0.0, 
             'pid_rate.yaw_ki': 0, 
-            'pid_attitude.pitch_kp': 0, 
+            # 'pid_attitude.pitch_kp': 0, 
+            # 'pid_attitude.pitch_kd': 0.0, 
+            # 'pid_attitude.pitch_ki': 0, 
+            # 'pid_attitude.roll_kp': 0, 
+            # 'pid_attitude.roll_kd': 0.0, 
+            # 'pid_attitude.roll_ki': 0, 
+            # 'pid_attitude.yaw_kp': 0.0, 
+            # 'pid_attitude.yaw_kd': 0.0, 
+            # 'pid_attitude.yaw_ki': 0.0, 
+            'pid_attitude.pitch_kp': 3.5, 
             'pid_attitude.pitch_kd': 0.0, 
-            'pid_attitude.pitch_ki': 0, 
-            'pid_attitude.roll_kp': 0, 
+            'pid_attitude.pitch_ki': 2.0, 
+            'pid_attitude.roll_kp': 3.5, 
             'pid_attitude.roll_kd': 0.0, 
-            'pid_attitude.roll_ki': 0, 
+            'pid_attitude.roll_ki': 2.0, 
             'pid_attitude.yaw_kp': 0.0, 
             'pid_attitude.yaw_kd': 0.0, 
             'pid_attitude.yaw_ki': 0.0, 
-            #'pid_attitude.pitch_kp': 3.5, 
-            #'pid_attitude.pitch_kd': 0.0, 
-            #'pid_attitude.pitch_ki': 2.0, 
-            #'pid_attitude.roll_kp': 3.5, 
-            #'pid_attitude.roll_kd': 0.0, 
-            #'pid_attitude.roll_ki': 2.0, 
-            #'pid_attitude.yaw_kp': 0.0, 
-            #'pid_attitude.yaw_kd': 0.0, 
-            #'pid_attitude.yaw_ki': 0.0, 
             'sensorfusion6.kp': 0.800000011921, 
             'sensorfusion6.ki': 0.00200000009499, 
             'imu_acc_lpf.factor': 32 }
@@ -177,6 +177,9 @@ class AiController():
                         # self.data["exit"] = True
                         self.data["exit"] = not self.data["exit"]
                         logger.info("Toggling AI %d", self.data["exit"])
+                    elif (key == "althold"):
+                        self.data["althold"] = not self.data["althold"]
+                        logger.info("Toggling AI %d", self.data["althold"])
                     else: # Generic cal for pitch/roll
                         self.data[key] = self.inputMap[index]["scale"]
             except Exception:
@@ -356,12 +359,12 @@ class AiController():
 
 
     def getSignalQuality(self):
-        linkQualityValue = None
+        linkQualityValue = []
         linkQualitySignal = pyqtSignal(int)
         # Connect link quality feedback
         self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
         self.linkQualitySignal.connect(
-                    lambda percentage: self.linkQualityValue.value(percentage))
+                    lambda percentage: self.linkQualityValue.append(percentage))
         print linkQualityValue
 
         #if(linkQualityValue < 60):
