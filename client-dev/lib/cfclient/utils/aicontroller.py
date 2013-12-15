@@ -133,6 +133,7 @@ class AiController():
         self.currentLong = []
         self.destinationLat = []
         self.destinationLong = []
+        self.cfHeading = None
         
         self.rollHistory = []
         self.pitchHistory = []
@@ -231,7 +232,8 @@ class AiController():
         elif self.timer1 < self.takeoffTime :
             thrustDelta = self.thrustInc
         # hold
-        elif self.timer1 < self.takeoffTime + self.hoverTime : 
+        elif self.timer1 < self.takeoffTime + self.hoverTime :
+            self.data["althold"] = not self.data["althold"]
             thrustDelta = 0
         # land
         elif self.timer1 < 2 * self.takeoffTime + self.hoverTime :
@@ -257,6 +259,15 @@ class AiController():
 
             angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
             print "Angle between coordinates: ", angleBetweenCoordinates
+
+            if not (self.cfHeading == None):
+                turnAngle = calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
+                
+                if not (turnAngle == 0)
+                    
+
+
+
 
         # override Other inputs as needed
         # --------------------------------------------------------------
@@ -406,9 +417,9 @@ class AiController():
         
         return angleInDegrees
 
-    def calcuateDiffHeadingOrientation(self, heading, orientation):
+    def calculateDiffHeadingOrientation(self, desiredHeading, orientation):
         orientation = 0
-        difference = heading - orientation
+        difference = desiredHeading - orientation
         return difference
 
 # - (void)calculateAngleBegtweenCoordinates
@@ -491,6 +502,10 @@ class AiController():
         #print vals
     def getYawError(self, vals):
         self.yawError.append(vals)
+        #print vals
+
+    def getCFHeading(self, val):
+        self.cfHeading = val
         #print vals
 
     def getCurrentCoords(self, latitude, longitude):
