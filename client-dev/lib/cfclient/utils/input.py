@@ -97,6 +97,7 @@ class JoystickReader(QThread):
 
         self._trim_roll = Config().get("trim_roll")
         self._trim_pitch = Config().get("trim_pitch")
+        self._trim_yaw = 0.0
 
         if (Config().get("flightmode") is "Normal"):
             self._max_yaw_rate = Config().get("normal_max_yaw")
@@ -295,6 +296,7 @@ class JoystickReader(QThread):
             # Yaw deadband
             # TODO: Add to input device config?
             yaw = JoystickReader.deadband(yaw,0.2)*self._max_yaw_rate           
+            yaw = yaw + self._trim_yaw
 
             if trim_roll != 0 or trim_pitch != 0:
                 self._trim_roll += trim_roll
