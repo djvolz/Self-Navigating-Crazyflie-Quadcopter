@@ -386,7 +386,13 @@ class AiController():
         # convert to meters
         return (nD*1000);
 
-    # def calculateAngleBegtweenCoordinates(self):
+     def calculateAngleBegtweenCoordinates(self, coord1Lat, coord1Long, coord2Lat, coord2Long):
+        deltaY = coord2Long - coord1Long;
+        deltaX = coord2Lat - coord1Lat;
+        
+        angleInDegrees = atan2(deltaY, deltaX) * 180 / pi;
+        
+        return angleInDegrees
 
 # - (void)calculateAngleBegtweenCoordinates
 # {
