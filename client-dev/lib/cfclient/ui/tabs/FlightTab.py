@@ -295,6 +295,7 @@ class FlightTab(Tab, flight_tab_class):
   
         heading = math.atan2(Yh, Xh)
         d_heading = math.degrees(heading) * -1 # for some reason getting inveted sign here
+        JoystickReader.controller.getCFHeading(d_heading)
         
         # update compass widget
         self.compass.setAngle(d_heading)
