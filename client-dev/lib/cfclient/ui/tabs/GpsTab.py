@@ -45,6 +45,7 @@ from cfclient.utils.GPS import GpsPoller
 from cfclient.utils.guiconfig import GuiConfig
 
 from cfclient.utils.periodictimer import PeriodicTimer
+from cfclient.utils.input import JoystickReader
 
 param_tab_class = uic.loadUiType(sys.path[0] + "/cfclient/ui/tabs/GpsTab.ui")[0]
 
@@ -53,7 +54,9 @@ gpsd = None
 class GpsTab(Tab, param_tab_class):
     connectedSignal = pyqtSignal(str)
     disconnectedSignal = pyqtSignal(str)
-
+    
+    destLatVal = 0
+    destLongVal = 0
     def __init__(self, tabWidget, helper, *args):
         super(GpsTab, self).__init__(*args)
         self.setupUi(self)
@@ -77,6 +80,9 @@ class GpsTab(Tab, param_tab_class):
 
         self.cf.connectSetupFinished.add_callback(self.connectedSignal.emit)
         self.connectedSignal.connect(self.connected)
+        
+        self.updateDest.clicked.connect(self.destCoordsChanged)
+        self.revertChanges.clicked.connect(self.destRevertChanges)
 
         # Clear the log TOC list when the Crazyflie is disconnected
         self.cf.disconnected.add_callback(self.disconnectedSignal.emit)
@@ -84,22 +90,31 @@ class GpsTab(Tab, param_tab_class):
 
     @pyqtSlot('QString')
     def disconnected(self, linkname):
-        self.curLat.value = 7
+        self.curLat.value = 0
 
     @pyqtSlot(str)
     def connected(self, linkURI):
-        self.curLat.value = 8
+        self.curLat.value = 0
         
+    def destCoordsChanged(self):
+        self.destLatVal = self.destLat.text().toFloat()[0]
+        self.destLongVal = self.destLong.text().toFloat()[0]
+        JoystickReader.controller.getDestinationCoords(self.destLatVal, self.destLongVal)
+    
+    def destRevertChanges(self):
+        self.destLat.setText(("%0.10f" %
+                                   self.destLatVal))
+        self.destLong.setText(("%0.10f" %
+                                   self.destLongVal))
+
     def updateCoords(self):
         latitude = self.GPS.getGpsd().fix.latitude
         longitude = self.GPS.getGpsd().fix.longitude
-        print "latitude: ", latitude
-        print "longitude: ", longitude
         self.curLat.setText(("%0.10f" %
                                    latitude))
         self.curLong.setText(("%0.10f" %
                                    longitude))
-        JoystickReader.controller.getRollError(latitude, longitude)  
+        JoystickReader.controller.getCurrentCoords(latitude, longitude)  
         #GuiConfig().set("curLat", latitude)
         #GuiConfig().set("curLong", longitude)
   
