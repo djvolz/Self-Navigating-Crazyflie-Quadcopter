@@ -125,20 +125,13 @@ class AiController():
             'sensorfusion6.ki': 0.00200000009499, 
             'imu_acc_lpf.factor': 32 }
             
-        self.rollError = []
-        self.pitchError = []
-        self.yawError = []
-
+        self.max_rp_angle = 10
         self.currentLat = []
         self.currentLong = []
         self.destinationLat = []
         self.destinationLong = []
         self.cfHeading = None
         
-        self.rollHistory = []
-        self.pitchHistory = []
-        self.yawHistory = []
-        self.paramHistory = []
         
         rollDelta = 5;
         pitchDelta = 5;
@@ -225,29 +218,16 @@ class AiController():
         if self.timer1 < 0:
             thrustDelta = 0
             # clear the error lists before takeoff
-            self.rollError = []
-            self.pitchError = []
-            self.yawError = []
         # takeoff
         elif self.timer1 < self.takeoffTime :
             thrustDelta = self.thrustInc
         # hold
-        elif self.timer1 < self.takeoffTime + self.hoverTime :
+        else:# self.timer1 < self.takeoffTime + self.hoverTime :
             self.data["althold"] = not self.data["althold"]
             thrustDelta = 0
-        # land
-        elif self.timer1 < 2 * self.takeoffTime + self.hoverTime :
-            thrustDelta = self.thrustDec
-        # repeat
-        else:
-            self.timer1 = -self.repeatDelay
-            thrustDelta = 0
-            # Example Call to pidTuner
-            self.pidTuner()
-            if(self.tuned):
-                print "Tuning is complete!"
-                print self.cfParams
-                return
+
+
+            
 
 
         self.addThrust( thrustDelta )
@@ -263,15 +243,15 @@ class AiController():
             if not (self.cfHeading == None):
                 turnAngle = calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
                 
-                #if not (turnAngle == 0):
+                # if not (turnAngle == 0):
+                #     self.data["roll"] = sin(turnAngle) * self.max_rp_angle
+                #     self.data["pitch"] = cos(turnAngle) * self.max_rp_angle
 
 
 
 
         # override Other inputs as needed
         # --------------------------------------------------------------
-        # self.data["roll"] = self.aiData["roll"]
-        # self.data["pitch"] = self.aiData["pitch"]
         # self.data["yaw"] = self.aiData["yaw"]
         # self.data["pitchcal"] = self.aiData["pitchcal"]
         # self.data["rollcal"] = self.aiData["rollcal"]
@@ -281,6 +261,7 @@ class AiController():
     def addThrust(self, thrustDelta):
         # Increment thrust
         self.aiData["thrust"] = self.aiData["thrust"] + thrustDelta 
+
         # Check for max
         if self.aiData["thrust"] > self.maxThrust:
             self.aiData["thrust"] = self.maxThrust
@@ -292,89 +273,7 @@ class AiController():
         self.data["thrust"] = self.aiData["thrust"]
 
 
-    # ELEC424 TODO: Implement this function
-    def pidTuner(self):
-        """ 
-        example on how to update crazyflie params
-        """
-        rollTotalError = sum([abs(x) for x in self.rollError])
-        self.rollHistory.append(rollTotalError)
-        pitchTotalError = sum([abs(x) for x in self.pitchError])
-        self.pitchHistory.append(pitchTotalError)
-        yawTotalError = sum([abs(x) for x in self.yawError])
-        self.yawHistory.append(yawTotalError)
-        mode = 'pid_rate' #'pid_attitude'
-        self.paramHistory.append((self.cfParams['pid_rate.roll_kp'], self.cfParams['pid_rate.pitch_kp'], self.cfParams['pid_rate.yaw_kp']))
-        
-        if((len(self.rollHistory) < 2) or (len(self.pitchHistory) < 2) or (len(self.yawHistory) < 2)):
-            self.rollDelta = 5;
-            self.pitchDelta = 5;
-            self.yawDelta = 5;
-            self.rollDone = False
-            self.pitchDone = False
-            self.yawDone = False
-            return
-        
-        if(self.rollHistory[-1] > self.rollHistory[-2]):
-            rollDelta = -rollDelta;
-        self.cfParams['pid_rate.roll_kp'] = self.rollDelta + self.cfParams['pid_rate.roll_kp']
-        print "roll", rollTotalError, " : ", self.cfParams['pid_rate.roll_kp']
-        if(len(self.rollHistory) > 10):
-            netSwitches = 0
-            for i in xrange(1, 9):
-                if(self.rollHistory[-i] > self.rollHistory[-(i+1)]):
-                    netSwitches += 1
-                else:
-                    netSwitches -= 1
-            if(netSwitches < 3):
-                self.rollDone = True
-        
-        if(self.pitchHistory[-1] > self.pitchHistory[-2]):
-            pitchDelta = -pitchDelta;
-        self.cfParams['pid_rate.pitch_kp'] = self.pitchDelta + self.cfParams['pid_rate.pitch_kp']
-        print "pitch", pitchTotalError, " : ", self.cfParams['pid_rate.pitch_kp']
-        if(len(self.pitchHistory) > 10):
-            netSwitches = 0
-            for i in xrange(1, 9):
-                if(self.pitchHistory[-i] > self.pitchHistory[-(i+1)]):
-                    netSwitches += 1
-                else:
-                    netSwitches -= 1
-            if(netSwitches < 3):
-                self.pitchDone = True
-                        
-        if(self.yawHistory[-1] > self.yawHistory[-2]):
-            yawDelta = -yawDelta;
-        self.cfParams['pid_rate.yaw_kp'] = self.yawDelta + self.cfParams['pid_rate.yaw_kp']
-        print "yaw", yawTotalError, " : ", self.cfParams['pid_rate.yaw_kp']
-        if(len(self.yawHistory) > 10):
-            netSwitches = 0
-            for i in xrange(1, 9):
-                if(self.yawHistory[-i] > self.yawHistory[-(i+1)]):
-                    netSwitches += 1
-                else:
-                    netSwitches -= 1
-            if(netSwitches < 3):
-                self.yawDone = True        
-
-        if(self.rollDone and self.pitchDone and self.yawDone):
-            if(self.tuningPhase == 0):
-                self.tuningPhase = 1
-                self.rollDelta = .5;
-                self.pitchDelta = .5;
-                self.yawDelta = .5;
-                self.rollDone = False
-                self.pitchDone = False
-                self.yawDone = False
-            else:
-                self.tuned == True
     
-        self.updateCrazyFlieParam('pid_rate.roll_kp')
-        self.updateCrazyFlieParam('pid_rate.pitch_kp')
-        self.updateCrazyFlieParam('pid_rate.yaw_kp')
-        self.updateCrazyFlieParam('pid_attitude.roll_kp')
-        self.updateCrazyFlieParam('pid_attitude.pitch_kp')
-        self.updateCrazyFlieParam('pid_attitude.yaw_kp')
     
     # update via param.py -> radiodriver.py -> crazyradio.py -> usbRadio )))
     def updateCrazyFlieParam(self, completename ):
@@ -492,16 +391,6 @@ class AiController():
             dev.append({"id":i, "name" : j.get_name()})
         return dev
         
-    def getRollError(self, vals):
-        self.rollError.append(vals)
-        #print vals
-        #print "self is: ", self
-    def getPitchError(self, vals):
-        self.pitchError.append(vals)
-        #print vals
-    def getYawError(self, vals):
-        self.yawError.append(vals)
-        #print vals
 
     def getCFHeading(self, val):
         self.cfHeading = val
