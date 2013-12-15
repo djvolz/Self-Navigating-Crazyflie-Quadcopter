@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>695</width>
+    <height>531</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Current Location</string>
+     </property>
+     <widget class="QWidget" name="gridLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>9</x>
+        <y>29</y>
+        <width>631</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="curLatLabel">
+         <property name="text">
+          <string>Latitude</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="curLongLabel">
+         <property name="text">
+          <string>Longitude</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="curLat"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="curLong"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="geometry">
+       <rect>
+        <x>-1</x>
+        <y>260</y>
+        <width>661</width>
+        <height>253</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Destination</string>
+      </property>
+      <widget class="QWidget" name="gridLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>641</width>
+         <height>81</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Latitude</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Longitude</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QDoubleSpinBox" name="destLat"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QDoubleSpinBox" name="destLong"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
