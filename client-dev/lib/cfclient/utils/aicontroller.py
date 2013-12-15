@@ -263,8 +263,7 @@ class AiController():
             if not (self.cfHeading == None):
                 turnAngle = calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
                 
-                if not (turnAngle == 0)
-                    
+                #if not (turnAngle == 0):
 
 
 
