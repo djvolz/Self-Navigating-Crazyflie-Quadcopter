@@ -63,7 +63,7 @@ from PyQt4.QtCore import pyqtSignal
 
 import time
 import logging
-import math
+from math import *
 
 logger = logging.getLogger(__name__)
 
@@ -241,11 +241,11 @@ class AiController():
             print "Angle between coordinates: ", angleBetweenCoordinates
 
             if not (self.cfHeading == None):
-                turnAngle = calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
+                turnAngle = self.calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
                 
-                # if not (turnAngle == 0):
-                #     self.data["roll"] = sin(turnAngle) * self.max_rp_angle
-                #     self.data["pitch"] = cos(turnAngle) * self.max_rp_angle
+                if not (turnAngle == 0):
+                    self.data["roll"] = sin(turnAngle) * self.max_rp_angle
+                    self.data["pitch"] = cos(turnAngle) * self.max_rp_angle
 
 
 
@@ -295,6 +295,7 @@ class AiController():
 
 
     def calculateDistanceInMetersBetweenCoord(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
+        pi = 3.14159
         nRadius = 6371;  #Earth's radius in Kilometers
         latDiff = (destinationCoordLat - currentCoordLat) * (pi/180);
         lonDiff = (destinationCoordLong - currentCoordLong) * (pi/180);
@@ -308,6 +309,7 @@ class AiController():
         return (nD*1000);
 
     def calculateAngleBegtweenCoordinates(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
+        pi = 3.14159
         deltaY = destinationCoordLong - currentCoordLong;
         deltaX = destinationCoordLat - currentCoordLat;
 
@@ -318,6 +320,7 @@ class AiController():
     def calculateDiffHeadingOrientation(self, desiredHeading, orientation):
         orientation = 0
         difference = desiredHeading - orientation
+
         return difference
 
 # - (void)calculateAngleBegtweenCoordinates
