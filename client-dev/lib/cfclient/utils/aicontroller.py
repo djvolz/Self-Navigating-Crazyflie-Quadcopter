@@ -53,7 +53,7 @@ You will also likely have to open the tools->parameters tab in the PC-Client whi
 
 """
 
-__author__ = 'Steven Arroyo'
+__author__ = 'Dog Copter'
 __all__ = ['AiController']
 
 import pygame
@@ -102,24 +102,24 @@ class AiController():
             'pid_rate.yaw_kp': 0, 
             'pid_rate.yaw_kd': 0.0, 
             'pid_rate.yaw_ki': 0, 
-            'pid_attitude.pitch_kp': 0, 
+            # 'pid_attitude.pitch_kp': 0, 
+            # 'pid_attitude.pitch_kd': 0.0, 
+            # 'pid_attitude.pitch_ki': 0, 
+            # 'pid_attitude.roll_kp': 0, 
+            # 'pid_attitude.roll_kd': 0.0, 
+            # 'pid_attitude.roll_ki': 0, 
+            # 'pid_attitude.yaw_kp': 0.0, 
+            # 'pid_attitude.yaw_kd': 0.0, 
+            # 'pid_attitude.yaw_ki': 0.0, 
+            'pid_attitude.pitch_kp': 3.5, 
             'pid_attitude.pitch_kd': 0.0, 
-            'pid_attitude.pitch_ki': 0, 
-            'pid_attitude.roll_kp': 0, 
+            'pid_attitude.pitch_ki': 2.0, 
+            'pid_attitude.roll_kp': 3.5, 
             'pid_attitude.roll_kd': 0.0, 
-            'pid_attitude.roll_ki': 0, 
+            'pid_attitude.roll_ki': 2.0, 
             'pid_attitude.yaw_kp': 0.0, 
             'pid_attitude.yaw_kd': 0.0, 
             'pid_attitude.yaw_ki': 0.0, 
-            #'pid_attitude.pitch_kp': 3.5, 
-            #'pid_attitude.pitch_kd': 0.0, 
-            #'pid_attitude.pitch_ki': 2.0, 
-            #'pid_attitude.roll_kp': 3.5, 
-            #'pid_attitude.roll_kd': 0.0, 
-            #'pid_attitude.roll_ki': 2.0, 
-            #'pid_attitude.yaw_kp': 0.0, 
-            #'pid_attitude.yaw_kd': 0.0, 
-            #'pid_attitude.yaw_ki': 0.0, 
             'sensorfusion6.kp': 0.800000011921, 
             'sensorfusion6.ki': 0.00200000009499, 
             'imu_acc_lpf.factor': 32 }
@@ -177,6 +177,9 @@ class AiController():
                         # self.data["exit"] = True
                         self.data["exit"] = not self.data["exit"]
                         logger.info("Toggling AI %d", self.data["exit"])
+                    elif (key == "althold"):
+                        self.data["althold"] = not self.data["althold"]
+                        logger.info("Toggling AI %d", self.data["althold"])
                     else: # Generic cal for pitch/roll
                         self.data[key] = self.inputMap[index]["scale"]
             except Exception:
@@ -356,16 +359,64 @@ class AiController():
 
 
     def getSignalQuality(self):
-        linkQualityValue = None
+        linkQualityValue = []
         linkQualitySignal = pyqtSignal(int)
         # Connect link quality feedback
         self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
         self.linkQualitySignal.connect(
-                   lambda percentage: self.linkQualityValue = percentage)
+                    lambda percentage: self.linkQualityValue.append(percentage))
+        print linkQualityValue
+
+        #if(linkQualityValue < 60):
+            # Have the crazyflie fly in the opposite direction.
 
 
 
+    def calculateDistanceInMetersBetweenCoord(self, coord1, coord2):
+        NSInteger nRadius = 6371; // Earth's radius in Kilometers
+        latDiff = (coord2.latitude - coord1.latitude) * (M_PI/180);
+        lonDiff = (coord2.longitude - coord1.longitude) * (M_PI/180);
+        lat1InRadians = coord1.latitude * (M_PI/180);
+        lat2InRadians = coord2.latitude * (M_PI/180);
+        nA = pow ( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow ( sin(lonDiff/2), 2 );
+        nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ));
+        nD = nRadius * nC;
 
+        # convert to meters
+        return (nD*1000);
+
+# - (NSNumber*)calculateDistanceInMetersBetweenCoord:(CLLocationCoordinate2D)coord1 coord:(CLLocationCoordinate2D)coord2 {
+#     NSInteger nRadius = 6371; // Earth's radius in Kilometers
+#     double latDiff = (coord2.latitude - coord1.latitude) * (M_PI/180);
+#     double lonDiff = (coord2.longitude - coord1.longitude) * (M_PI/180);
+#     double lat1InRadians = coord1.latitude * (M_PI/180);
+#     double lat2InRadians = coord2.latitude * (M_PI/180);
+#     double nA = pow ( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow ( sin(lonDiff/2), 2 );
+#     double nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ));
+#     double nD = nRadius * nC;
+    
+#     // convert to meters
+#     return @(nD*1000);
+# }
+
+# - (void)calculateAngleBegtweenCoordinates
+# {
+#     if (self.sortedAnnotations.lastObject != nil) {
+#         /* Sorted annotations is used because the maps annotations array isn't sorted and includes the user's location. */
+#         RegionAnnotation *lastAnnotation = [self.sortedAnnotations lastObject];
+        
+        
+#         CGFloat deltaY = lastAnnotation.coordinate.longitude - self.userLoc.coordinate.longitude;
+#         CGFloat deltaX = lastAnnotation.coordinate.latitude - self.userLoc.coordinate.latitude;
+        
+#         CGFloat angleInDegrees = atan2(deltaY, deltaX) * 180 / M_PI;
+        
+#         NSLog(@"angleInDegrees: %f", angleInDegrees);
+        
+#         self.angleBetweenCoordinates = angleInDegrees;
+#     } else {
+#         NSLog(@"No Geofences");
+#     }
 
 
 
@@ -375,8 +426,10 @@ class AiController():
     def start_input(self, deviceId, inputMap):
         """Initalize the reading and open the device with deviceId and set the mapping for axis/buttons using the
         inputMap"""
-        self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "exit":False}
-        self.aiData = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "exit":False}
+        # self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "exit":False}
+        # self.aiData = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "exit":False}
+        self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "althold": False, "exit":False}
+        self.aiData = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "althold": False, "exit":False}
         self.inputMap = inputMap
         self.j = pygame.joystick.Joystick(deviceId)
         self.j.init()

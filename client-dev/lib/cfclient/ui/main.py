@@ -110,7 +110,8 @@ class MainUI(QtGui.QMainWindow, main_window_class):
         self._statusbar_label = QLabel("Loading device and configuration.")
         self.statusBar().addWidget(self._statusbar_label)
 
-        self.joystickReader = JoystickReader()
+        # self.joystickReader = JoystickReader()
+        self.joystickReader = JoystickReader(cf=self.cf)
         self._active_device = ""
         self.configGroup = QActionGroup(self._menu_mappings, exclusive=True)
         self._load_input_data()
@@ -177,6 +178,7 @@ class MainUI(QtGui.QMainWindow, main_window_class):
         self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
         self.linkQualitySignal.connect(
                    lambda percentage: self.linkQualityBar.setValue(percentage))
+        
 
         # Set UI state in disconnected buy default
         self.setUIState(UIState.DISCONNECTED)
