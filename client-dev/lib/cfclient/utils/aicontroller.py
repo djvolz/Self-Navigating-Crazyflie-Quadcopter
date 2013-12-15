@@ -485,10 +485,10 @@ class AiController():
     def getCurrentCoords(self, latitude, longitude):
         self.currentLat.append(latitude)
         self.currentLong.append(longitude)
-        print "latitude" + latitude + " longitude" longitude
+        print "latitude ", latitude, " longitude ", longitude
 
     def getDestinationCoords(self, latitude, longitude):
         self.destinationLat.append(latitude)
         self.destinationLong.append(longitude)
-        print "latitude" + latitude + " longitude" longitude
+        print "latitude " , latitude, " longitude ", longitude
 
