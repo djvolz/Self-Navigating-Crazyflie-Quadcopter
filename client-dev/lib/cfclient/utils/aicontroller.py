@@ -233,7 +233,7 @@ class AiController():
         self.addThrust( thrustDelta )
 
         # Verify that all four values are available to calculate first
-        if not (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
+        if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
             distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
             print "Distance from destination: ", distanceToDestination
 
