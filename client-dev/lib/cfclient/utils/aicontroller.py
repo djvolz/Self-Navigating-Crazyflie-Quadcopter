@@ -250,6 +250,13 @@ class AiController():
 
         self.addThrust( thrustDelta )
 
+        # Verify that all four values are available to calculate first
+        if not (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
+            distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+            print "Distance from destination: ", distanceToDestination
+
+            angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+            print "Angle between coordinates: ", angleBetweenCoordinates
 
         # override Other inputs as needed
         # --------------------------------------------------------------
@@ -378,12 +385,12 @@ class AiController():
 
 
 
-    def calculateDistanceInMetersBetweenCoord(self, coord1Lat, coord1Long, coord2Lat, coord2Long):
+    def calculateDistanceInMetersBetweenCoord(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
         nRadius = 6371;  #Earth's radius in Kilometers
-        latDiff = (coord2Lat - coord1Lat) * (pi/180);
-        lonDiff = (coord2Long - coord1Long) * (pi/180);
-        lat1InRadians = coord1Lat * (pi/180);
-        lat2InRadians = coord2Lat * (pi/180);
+        latDiff = (destinationCoordLat - currentCoordLat) * (pi/180);
+        lonDiff = (destinationCoordLong - currentCoordLong) * (pi/180);
+        lat1InRadians = currentCoordLat * (pi/180);
+        lat2InRadians = destinationCoordLat * (pi/180);
         nA = pow( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow( sin(lonDiff/2), 2 );
         nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ));
         nD = nRadius * nC;
@@ -391,14 +398,13 @@ class AiController():
         # convert to meters
         return (nD*1000);
 
-    def calculateAngleBegtweenCoordinates(self, coord1Lat, coord1Long, coord2Lat, coord2Long):
-        if(coord1Long != Nan):
-            deltaY = coord2Long - coord1Long;
-            deltaX = coord2Lat - coord1Lat;
+    def calculateAngleBegtweenCoordinates(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
+        deltaY = destinationCoordLong - currentCoordLong;
+        deltaX = destinationCoordLat - currentCoordLat;
 
-            angleInDegrees = atan2(deltaY, deltaX) * 180 / pi;
+        angleInDegrees = atan2(deltaY, deltaX) * 180 / pi;
         
-            return angleInDegrees
+        return angleInDegrees
 
 # - (void)calculateAngleBegtweenCoordinates
 # {
