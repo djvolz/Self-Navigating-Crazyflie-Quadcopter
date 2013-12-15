@@ -459,10 +459,10 @@ class FlightTab(Tab, flight_tab_class):
         self.thrustProgress.setValue(thrust)
 
     def setMotorLabelsEnabled(self, enabled):
-        self.M1label.setEnabled(enabled)
-        self.M2label.setEnabled(enabled)
-        self.M3label.setEnabled(enabled)
-        self.M4label.setEnabled(enabled)
+        self.actualM1.setEnabled(enabled)
+        self.actualM2.setEnabled(enabled)
+        self.actualM3.setEnabled(enabled)
+        self.actualM4.setEnabled(enabled)
 
     def emergencyStopStringWithText(self, text):
         return ("<html><head/><body><p>"
