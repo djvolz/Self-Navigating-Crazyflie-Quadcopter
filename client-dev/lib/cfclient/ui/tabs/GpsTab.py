@@ -98,7 +98,8 @@ class GpsTab(Tab, param_tab_class):
         self.curLat.setText(("%0.10f" %
                                    latitude))
         self.curLong.setText(("%0.10f" %
-                                   longitude))  
+                                   longitude))
+        JoystickReader.controller.getRollError(latitude, longitude)  
         #GuiConfig().set("curLat", latitude)
         #GuiConfig().set("curLong", longitude)
   

@@ -58,6 +58,8 @@ from cfclient.utils.logconfigreader import LogVariable, LogConfig
 
 from math import pi, sin, cos
 
+from cfclient.utils.input import JoystickReader
+
 flight_tab_class = uic.loadUiType(sys.path[0] +
                                   "/cfclient/ui/tabs/flightTab.ui")[0]
 
