@@ -128,6 +128,11 @@ class AiController():
         self.rollError = []
         self.pitchError = []
         self.yawError = []
+
+        self.currentLat = []
+        self.currentLong = []
+        self.destinationLat = []
+        self.destinationLong = []
         
         self.rollHistory = []
         self.pitchHistory = []
@@ -386,13 +391,14 @@ class AiController():
         # convert to meters
         return (nD*1000);
 
-     def calculateAngleBegtweenCoordinates(self, coord1Lat, coord1Long, coord2Lat, coord2Long):
-        deltaY = coord2Long - coord1Long;
-        deltaX = coord2Lat - coord1Lat;
+    def calculateAngleBegtweenCoordinates(self, coord1Lat, coord1Long, coord2Lat, coord2Long):
+        if(coord1Long != Nan):
+            deltaY = coord2Long - coord1Long;
+            deltaX = coord2Lat - coord1Lat;
+
+            angleInDegrees = atan2(deltaY, deltaX) * 180 / pi;
         
-        angleInDegrees = atan2(deltaY, deltaX) * 180 / pi;
-        
-        return angleInDegrees
+            return angleInDegrees
 
 # - (void)calculateAngleBegtweenCoordinates
 # {
@@ -412,7 +418,6 @@ class AiController():
 #     } else {
 #         NSLog(@"No Geofences");
 #     }
-
 
 
 
@@ -476,4 +481,14 @@ class AiController():
     def getYawError(self, vals):
         self.yawError.append(vals)
         #print vals
+
+    def getCurrentCoords(self, latitude, longitude):
+        self.currentLat.append(latitude)
+        self.currentLong.append(longitude)
+        print "latitude" + latitude + " longitude" longitude
+
+    def getDestinationCoords(self, latitude, longitude):
+        self.destinationLat.append(latitude)
+        self.destinationLong.append(longitude)
+        print "latitude" + latitude + " longitude" longitude
 
