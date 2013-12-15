@@ -63,6 +63,7 @@ from PyQt4.QtCore import pyqtSignal
 
 import time
 import logging
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -372,32 +373,20 @@ class AiController():
 
 
 
-    def calculateDistanceInMetersBetweenCoord(self, coord1, coord2):
-        NSInteger nRadius = 6371; // Earth's radius in Kilometers
-        latDiff = (coord2.latitude - coord1.latitude) * (M_PI/180);
-        lonDiff = (coord2.longitude - coord1.longitude) * (M_PI/180);
-        lat1InRadians = coord1.latitude * (M_PI/180);
-        lat2InRadians = coord2.latitude * (M_PI/180);
-        nA = pow ( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow ( sin(lonDiff/2), 2 );
+    def calculateDistanceInMetersBetweenCoord(self, coord1Lat, coord1Long, coord2Lat, coord2Long):
+        nRadius = 6371;  #Earth's radius in Kilometers
+        latDiff = (coord2Lat - coord1Lat) * (pi/180);
+        lonDiff = (coord2Long - coord1Long) * (pi/180);
+        lat1InRadians = coord1Lat * (pi/180);
+        lat2InRadians = coord2Lat * (pi/180);
+        nA = pow( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow( sin(lonDiff/2), 2 );
         nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ));
         nD = nRadius * nC;
 
         # convert to meters
         return (nD*1000);
 
-# - (NSNumber*)calculateDistanceInMetersBetweenCoord:(CLLocationCoordinate2D)coord1 coord:(CLLocationCoordinate2D)coord2 {
-#     NSInteger nRadius = 6371; // Earth's radius in Kilometers
-#     double latDiff = (coord2.latitude - coord1.latitude) * (M_PI/180);
-#     double lonDiff = (coord2.longitude - coord1.longitude) * (M_PI/180);
-#     double lat1InRadians = coord1.latitude * (M_PI/180);
-#     double lat2InRadians = coord2.latitude * (M_PI/180);
-#     double nA = pow ( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow ( sin(lonDiff/2), 2 );
-#     double nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ));
-#     double nD = nRadius * nC;
-    
-#     // convert to meters
-#     return @(nD*1000);
-# }
+    # def calculateAngleBegtweenCoordinates(self):
 
 # - (void)calculateAngleBegtweenCoordinates
 # {
