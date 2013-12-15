@@ -53,6 +53,7 @@ import shutil
 logger = logging.getLogger(__name__)
 
 from cfclient.utils.pygamereader import PyGameReader
+from PyQt4.QtCore import Qt, pyqtSlot, pyqtSignal, QThread, SIGNAL
 from cfclient.utils.config import Config
 from cfclient.utils.config_manager import ConfigManager
 
@@ -63,7 +64,7 @@ from cfclient.utils.aicontroller import AiController
 
 MAX_THRUST = 65000
 
-class JoystickReader:
+class JoystickReader(QThread):
     """
     Thread that will read input from devices/joysticks and send control-set
     ponts to the Crazyflie
@@ -71,12 +72,17 @@ class JoystickReader:
     inputConfig = []
     controller = 0
 
+    update_trim_yaw_signal = pyqtSignal(float)
+
     # def __init__(self, do_device_discovery=True):
     def __init__(self, do_device_discovery=True, cf=None):
+        QThread.__init__(self)
         # TODO: Should be OS dependant
         self.inputdevice = AiController(cf)
         JoystickReader.controller = self.inputdevice
         # self.inputdevice = PyGameReader()
+        
+        self.update_trim_yaw_signal.connect(self._update_trim_yaw)
         
         self._min_thrust = 0
         self._max_thrust = 0
@@ -304,6 +310,11 @@ class JoystickReader:
             self.device_error.call("Error reading from input device\n\n%s" %
                                      traceback.format_exc())
             self._read_timer.stop()
+
+    @pyqtSlot(float)
+    def _update_trim_yaw(self, trim_yaw):
+        """Set a new value for the roll trim."""
+        self._trim_yaw = trim_yaw
 
     @staticmethod
     def p2t(percentage):

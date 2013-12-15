@@ -305,7 +305,7 @@ class FlightTab(Tab, flight_tab_class):
             yaw_trim = -20
         else:
             yaw_trim = 20
-        #self.helper.inputDeviceReader.update_trim_yaw_signal.emit(yaw_trim)
+        self.helper.inputDeviceReader.update_trim_yaw_signal.emit(yaw_trim)
 
     def connected(self, linkURI):
         # IMU & THRUST
