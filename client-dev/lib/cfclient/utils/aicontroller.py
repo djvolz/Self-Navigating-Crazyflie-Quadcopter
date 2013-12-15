@@ -406,6 +406,11 @@ class AiController():
         
         return angleInDegrees
 
+    def calcuateDiffHeadingOrientation(self, heading, orientation):
+        orientation = 0
+        difference = heading - orientation
+        return difference
+
 # - (void)calculateAngleBegtweenCoordinates
 # {
 #     if (self.sortedAnnotations.lastObject != nil) {
@@ -497,4 +502,6 @@ class AiController():
         self.destinationLat.append(latitude)
         self.destinationLong.append(longitude)
         print "latitude " , latitude, " longitude ", longitude
+
+
 
