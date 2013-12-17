@@ -245,6 +245,8 @@ class AiController():
         #if(linkQualityValue < 60):
             # Have the crazyflie fly in the opposite direction.
 
+    def updateCrazyFlieParam(self, completename ):
+        self.cf.param.set_value( unicode(completename), str(self.cfParams[completename]) )
 
 
     def calculateDistanceInMetersBetweenCoord(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
