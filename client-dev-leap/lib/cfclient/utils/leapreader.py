@@ -85,6 +85,8 @@ class LeapListener(leapmotion.Leap.Listener):
             if thrust > 1.0:
                 thrust = 1.0
 
+
+
             # Protect against accidental readings. When tilting the had
             # fingers are sometimes lost so only use 4.
             if (len(hand.fingers) < 4):
@@ -100,7 +102,7 @@ class LeapmotionReader():
     def __init__(self):
         self.inputMap = None
         #pygame.init()
-        self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "exit":False}
+        self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "althold": True, "exit":False}
         logger.info("Initializing")
         self._listener = LeapListener()
         self._listener.set_data_callback(self.leap_callback)
@@ -113,7 +115,8 @@ class LeapmotionReader():
     def start_input(self, deviceId, inputMap):
         """Initalize the reading and open the device with deviceId and set the mapping for axis/buttons using the
         inputMap"""
-        self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "exit":False}
+        self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "althold": True, "exit":False}
+        
         #self.inputMap = inputMap
         #self.j = pygame.joystick.Joystick(deviceId)
         #self.j.init()
