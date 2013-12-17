@@ -351,3 +351,6 @@ class AiController():
         self.destinationLong.append(longitude)
         print "destination latitude " , latitude, " longitude ", longitude
 
+    def getSignalStrength(self, ss):
+        print "signal strength is ", ss
+
