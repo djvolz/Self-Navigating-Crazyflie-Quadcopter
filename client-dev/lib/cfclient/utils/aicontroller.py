@@ -67,6 +67,42 @@ from math import *
 
 logger = logging.getLogger(__name__)
 
+class Coordinate():
+    def __init__(self, latitude, longitude):
+        self.latitude = latitude
+        self.longitude = longitude
+
+    def getLatitude(self):
+        return self.latitude
+
+    def getLongitude(self):
+        return self.longitude
+
+    def distance(self, other):
+        pi = 3.14159
+        nRadius = 6371;  #Earth's radius in Kilometers
+        latDiff = (other.latitude - self.latitude) * (pi/180)
+        lonDiff = (other.longitude - self.longitude) * (pi/180)
+        lat1InRadians = self.latitude * (pi/180);
+        lat2InRadians = other.latitude * (pi/180)
+        nA = pow( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow( sin(lonDiff/2), 2 )
+        nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ))
+        nD = nRadius * nC
+
+        # convert to meters
+        return (nD*1000)
+
+    def angle(self, other):
+        pi = 3.14159
+        deltaY = other.longitude - self.longitude
+        deltaX = other.latitude - self.latitude
+
+        angleInDegrees = atan2(deltaY, deltaX) * 180 / pi
+        
+        return angleInDegrees
+
+
+
 class AiController():
     """Used for reading data from input devices using the PyGame API."""
     # linkQualitySignal = pyqtSignal(int)
@@ -114,10 +150,14 @@ class AiController():
             
 
         self.max_rp_angle = 10
-        self.currentLat = []
-        self.currentLong = []
-        self.destinationLat = []
-        self.destinationLong = []
+        # self.currentLat = []
+        # self.currentLong = []
+        # self.destinationLat = []
+        # self.destinationLong = []
+
+        self.currentCoordinates = []
+        self.destinationCoordinates = []
+
         self.cfHeading = None
 
         
@@ -197,11 +237,13 @@ class AiController():
         # self.data["althold"] = not self.data["althold"]
         else:
         # Verify that all four values are available to calculate first
-            if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
-                distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+            if (self.currentCoordinates and self.destinationCoordinates):
+                distanceToDestination = self.currentCoordinates[-1].distance(self.destinationCoordinates[-1])
+                # distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
                 print "Distance from destination: ", distanceToDestination
 
-                angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+                angleBetweenCoordinates = self.currentCoordinates[-1].angle(self.destinationCoordinates[-1])
+                # angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
                 print "Angle between coordinates: ", angleBetweenCoordinates
 
                 if not (self.cfHeading == None):
@@ -239,33 +281,34 @@ class AiController():
         self.cf.param.set_value( unicode(completename), str(self.cfParams[completename]) )
 
 
-    def calculateDistanceInMetersBetweenCoord(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
-        pi = 3.14159
-        nRadius = 6371;  #Earth's radius in Kilometers
-        latDiff = (destinationCoordLat - currentCoordLat) * (pi/180);
-        lonDiff = (destinationCoordLong - currentCoordLong) * (pi/180);
-        lat1InRadians = currentCoordLat * (pi/180);
-        lat2InRadians = destinationCoordLat * (pi/180);
-        nA = pow( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow( sin(lonDiff/2), 2 );
-        nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ));
-        nD = nRadius * nC;
+    # def calculateDistanceInMetersBetweenCoord(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
+    #     pi = 3.14159
+    #     nRadius = 6371;  #Earth's radius in Kilometers
+    #     latDiff = (destinationCoordLat - currentCoordLat) * (pi/180)
+    #     lonDiff = (destinationCoordLong - currentCoordLong) * (pi/180)
+    #     lat1InRadians = currentCoordLat * (pi/180);
+    #     lat2InRadians = destinationCoordLat * (pi/180)
+    #     nA = pow( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow( sin(lonDiff/2), 2 )
+    #     nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ))
+    #     nD = nRadius * nC
 
-        # convert to meters
-        return (nD*1000);
+    #     # convert to meters
+    #     return (nD*1000)
 
     def calculateAngleBegtweenCoordinates(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
         pi = 3.14159
-        deltaY = destinationCoordLong - currentCoordLong;
-        deltaX = destinationCoordLat - currentCoordLat;
+        deltaY = destinationCoordLong - currentCoordLong
+        deltaX = destinationCoordLat - currentCoordLat
 
-        angleInDegrees = atan2(deltaY, deltaX) * 180 / pi;
+        angleInDegrees = atan2(deltaY, deltaX) * 180 / pi
         
         return angleInDegrees
 
     def checkGeofence(self):
         # Verify that all four values are available to calculate first
-        if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
-            distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+        if (self.currentCoordinates and self.destinationCoordinates):
+            distanceToDestination = self.currentCoordinates[-1].distance(self.destinationCoordinates[-1])
+            # distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
             
             # If inside geofense then return true.
             if distanceToDestination < 10:
@@ -344,13 +387,17 @@ class AiController():
         #print vals
 
     def getCurrentCoords(self, latitude, longitude):
-        self.currentLat.append(0)
-        self.currentLong.append(0)
+        coordinate = Coordinate(latitude, longitude)
+        self.currentCoordinates.append(coordinate)
+        # self.currentLat.append(0)
+        # self.currentLong.append(0)
         #print "current latitude ", latitude, " longitude ", longitude
 
     def getDestinationCoords(self, latitude, longitude):
-        self.destinationLat.append(latitude)
-        self.destinationLong.append(longitude)
+        coordinate = Coordinate(latitude, longitude)
+        self.destinationCoordinates.append(coordinate)
+        # self.destinationLat.append(latitude)
+        # self.destinationLong.append(longitude)
         print "destination latitude " , latitude, " longitude ", longitude
 
     def getSignalStrength(self, ss):
