@@ -387,7 +387,7 @@ class AiController():
         #print vals
 
     def getCurrentCoords(self, latitude, longitude):
-        coordinate = Coordinate(latitude, longitude)
+        coordinate = Coordinate(0, 0)
         self.currentCoordinates.append(coordinate)
         # self.currentLat.append(0)
         # self.currentLong.append(0)
