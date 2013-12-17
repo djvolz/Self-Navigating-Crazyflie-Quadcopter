@@ -75,19 +75,19 @@ class AiController():
         self.inputMap = None
         pygame.init()
 
-        # AI variables
-        self.timer1 = 0
-        self.lastTime = 0
+        # # AI variables
+        # self.timer1 = 0
+        # self.lastTime = 0
 
-        # ---AI tuning variables---
-        # This is the thrust of the motors duing hover.  0.5 reaches ~1ft depending on battery
-        self.maxThrust = 1
-        # Determines how fast to take off
-        self.thrustInc = 0.1
-        self.takeoffTime = 0.5
-        # Determines how fast to land
-        self.thrustDec = -0.019
-        self.hoverTime = 2
+        # # ---AI tuning variables---
+        # # This is the thrust of the motors duing hover.  0.5 reaches ~1ft depending on battery
+        # self.maxThrust = 1
+        # # Determines how fast to take off
+        # self.thrustInc = 0.1
+        # self.takeoffTime = 0.5
+        # # Determines how fast to land
+        # self.thrustDec = -0.019
+        # self.hoverTime = 2
             
 
         self.max_rp_angle = 10
@@ -187,6 +187,7 @@ class AiController():
 
         # self.data["althold"] = not self.data["althold"]
         
+        print "HEY CHECK OUT ALL THIS COOL AI SHIT!!!!"
 
         # Verify that all four values are available to calculate first
         if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
