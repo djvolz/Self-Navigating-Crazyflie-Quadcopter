@@ -83,7 +83,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>29.732395</string>
+       <string>29.721540</string>
       </property>
      </widget>
      <widget class="QLabel" name="curLongLabel">
@@ -135,7 +135,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>-95.394824</string>
+       <string>-95.399209</string>
       </property>
      </widget>
      <widget class="QPushButton" name="updateDest">

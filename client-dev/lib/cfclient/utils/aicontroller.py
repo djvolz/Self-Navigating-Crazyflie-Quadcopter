@@ -246,7 +246,7 @@ class AiController():
 
                     if not (self.cfHeading == None):
                         tiltTowardsAngle = self.calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
-                        print "tiltTowardsAngle ", tiltTowardsAngle
+                        print "tiltTowardsAngle ", tiltTowardsAngle, " for waypoint ", self.destinationCoordinates[0].getLatitude(), ",", self.destinationCoordinates[0].getLongitude()
 
                         self.data["roll"] = sin(tiltTowardsAngle) #* self.max_rp_angle
                         self.data["pitch"] = cos(tiltTowardsAngle) #* self.max_rp_angle

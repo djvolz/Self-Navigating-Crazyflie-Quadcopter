@@ -1,18 +1,19 @@
 {
   "client_side_xmode": false, 
   "link_uri": "radio://0/10/250K", 
-  "input_device": "Controller", 
+  "input_device": "BDA Pro Ex", 
   "slew_limit": 45, 
-  "max_rp": 30, 
+  "max_rp": 20, 
   "trim_pitch": 0.0, 
   "device_config_mapping": {
     "Controller": "xbox360_mode1", 
-    "Microsoft X-Box 360 pad": "xbox360_mode1_linux"
+    "Microsoft X-Box 360 pad": "xbox360_mode1_linux", 
+    "BDA Pro Ex": "PS3_Mode_2"
   }, 
   "slew_rate": 30, 
   "auto_reconnect": false, 
   "max_yaw": 200, 
-  "flightmode": "Normal", 
+  "flightmode": "Advanced", 
   "enable_debug_driver": false, 
   "open_tabs": "Flight Control,Log TOC,GPS,Map", 
   "input_device_blacklist": "(VirtualBox|VMware)", 

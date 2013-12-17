@@ -104,16 +104,17 @@ class GpsTab(Tab, param_tab_class):
     def destCoordsChanged(self):
         self.destLatVal = self.destLat.text().toFloat()[0]
         self.destLongVal = self.destLong.text().toFloat()[0]
+        latitude = self.GPS.getGpsd().fix.latitude
+        longitude = self.GPS.getGpsd().fix.longitude
         url="""
 http://maps.googleapis.com/maps/api/directions/json?origin={0},{1}&destination={2},{3}&sensor=false
-""".format(29.71984,-95.398087,29.732395,-95.394824)
+""".format(latitude,longitude,self.destLatVal,self.destLongVal)
         dirsResult=simplejson.load(urllib.urlopen(url))
         dirsResult=dirsResult["routes"][0]["legs"][0]["steps"]
         for step in dirsResult:
 		    loc = step["end_location"]
+		    print "adding waypoint ", loc["lat"], ", ", loc["lng"]
 		    JoystickReader.controller.getDestinationCoords(loc["lat"], loc["lng"])
-        latitude = self.GPS.getGpsd().fix.latitude
-        longitude = self.GPS.getGpsd().fix.longitude
         #latitude = 29.7198
         #longitude = -95.398087
         print("%0.5f"%self.destLatVal)
