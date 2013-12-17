@@ -83,7 +83,7 @@ class AiController():
         # This is the thrust of the motors duing hover.  0.5 reaches ~1ft depending on battery
         self.maxThrust = 1
         # Determines how fast to take off
-        self.thrustInc = 0.021
+        self.thrustInc = 0.1
         self.takeoffTime = 0.5
         # Determines how fast to land
         self.thrustDec = -0.019
@@ -163,30 +163,30 @@ class AiController():
         """
 
         # Keep track of time
-        currentTime = time.time()
-        timeSinceLastAi = currentTime - self.lastTime
-        self.timer1 = self.timer1 + timeSinceLastAi
-        self.lastTime = currentTime
+        # currentTime = time.time()
+        # timeSinceLastAi = currentTime - self.lastTime
+        # self.timer1 = self.timer1 + timeSinceLastAi
+        # self.lastTime = currentTime
         
-        # Basic AutoPilot steadly increase thrust, hover
-        # -------------------------------------------------------------
-        # delay before takeoff 
-        if self.timer1 < 0:
-            thrustDelta = 0
-            # clear the error lists before takeoff
-        # takeoff
-        elif self.timer1 < self.takeoffTime :
-            thrustDelta = self.thrustInc
-        # hold
-        else:# self.timer1 < self.takeoffTime + self.hoverTime :
-            self.data["althold"] = not self.data["althold"]
-            thrustDelta = 0
-
+        # # Basic AutoPilot steadly increase thrust, hover
+        # # -------------------------------------------------------------
+        # # delay before takeoff 
+        # if self.timer1 < 0:
+        #     thrustDelta = 0
+        #     # clear the error lists before takeoff
+        # # takeofff
+        # elif self.timer1 < self.takeoffTime :
+        #     thrustDelta = self.thrustInc
+        # # hold
+        # else:# self.timer1 < self.takeoffTime + self.hoverTime :
+        #     self.data["althold"] = not self.data["althold"]
+        #     thrustDelta = 0
+        # self.addThrust( thrustDelta )
 
             
 
-
-        self.addThrust( thrustDelta )
+        # self.data["althold"] = not self.data["althold"]
+        
 
         # Verify that all four values are available to calculate first
         if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
@@ -214,19 +214,19 @@ class AiController():
         # self.data["estop"] = self.aiData["estop"]
         # self.data["exit"] = self.aiData["exit"]
 
-    def addThrust(self, thrustDelta):
-        # Increment thrust
-        self.aiData["thrust"] = self.aiData["thrust"] + thrustDelta 
+    # def addThrust(self, thrustDelta):
+    #     # Increment thrust
+    #     self.aiData["thrust"] = self.aiData["thrust"] + thrustDelta 
 
-        # Check for max
-        if self.aiData["thrust"] > self.maxThrust:
-            self.aiData["thrust"] = self.maxThrust
-        # check for min 
-        elif self.aiData["thrust"] < 0:
-            self.aiData["thrust"] = 0
+    #     # Check for max
+    #     if self.aiData["thrust"] > self.maxThrust:
+    #         self.aiData["thrust"] = self.maxThrust
+    #     # check for min 
+    #     elif self.aiData["thrust"] < 0:
+    #         self.aiData["thrust"] = 0
         
-        # overwrite joystick thrust values
-        self.data["thrust"] = self.aiData["thrust"]
+    #     # overwrite joystick thrust values
+    #     self.data["thrust"] = self.aiData["thrust"]
 
 
 
@@ -356,6 +356,4 @@ class AiController():
         self.destinationLat.append(latitude)
         self.destinationLong.append(longitude)
         print "latitude " , latitude, " longitude ", longitude
-
-
 
