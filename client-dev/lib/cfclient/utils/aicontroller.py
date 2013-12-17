@@ -228,7 +228,7 @@ class AiController():
         else:
             if self.checkGeofence():
                 print "Entered the zone"
-                self.destinationCoordinates.pop()
+                self.destinationCoordinates.pop(0)
                 if not len(self.destinationCoordinates) == 0:
                     self.arrivalEvent()
                 else:
@@ -236,11 +236,11 @@ class AiController():
             elif self.allowTravel:
             # Verify that all four values are available to calculate first
                 if (self.currentCoordinates and self.destinationCoordinates):
-                    distanceToDestination = self.currentCoordinates[-1].distance(self.destinationCoordinates[-1])
+                    distanceToDestination = self.currentCoordinates[0].distance(self.destinationCoordinates[0])
                     # distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
                     print "Distance from destination: ", distanceToDestination
 
-                    angleBetweenCoordinates = self.currentCoordinates[-1].angle(self.destinationCoordinates[-1])
+                    angleBetweenCoordinates = self.currentCoordinates[0].angle(self.destinationCoordinates[0])
                     # angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
                     print "Angle between coordinates: ", angleBetweenCoordinates
 
@@ -324,7 +324,7 @@ class AiController():
     def checkGeofence(self):
         # Verify that all four values are available to calculate first
         if (self.currentCoordinates and self.destinationCoordinates):
-            distanceToDestination = self.currentCoordinates[-1].distance(self.destinationCoordinates[-1])
+            distanceToDestination = self.currentCoordinates[0].distance(self.destinationCoordinates[0])
             
             # If inside geofense then return true.
             if distanceToDestination < 10:
