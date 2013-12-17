@@ -81,50 +81,15 @@ class AiController():
 
         # ---AI tuning variables---
         # This is the thrust of the motors duing hover.  0.5 reaches ~1ft depending on battery
-        self.maxThrust = .85
+        self.maxThrust = 1
         # Determines how fast to take off
         self.thrustInc = 0.021
         self.takeoffTime = 0.5
         # Determines how fast to land
         self.thrustDec = -0.019
         self.hoverTime = 2
-        # Sets the delay between test flights
-        self.repeatDelay = 2
-
-        # parameters pulled from json with defaults from crazyflie pid.h
-        # perl -ne '/"(\w*)": {/ && print $1,  "\n" ' lib/cflib/cache/27A2C4BA.json
-        self.cfParams = {
-            'pid_rate.pitch_kp': 0.0, 
-            'pid_rate.pitch_kd': 0.0, 
-            'pid_rate.pitch_ki': 0.0, 
-            'pid_rate.roll_kp': 0, 
-            'pid_rate.roll_kd': 0.0, 
-            'pid_rate.roll_ki': 0.0, 
-            'pid_rate.yaw_kp': 0, 
-            'pid_rate.yaw_kd': 0.0, 
-            'pid_rate.yaw_ki': 0, 
-            # 'pid_attitude.pitch_kp': 0, 
-            # 'pid_attitude.pitch_kd': 0.0, 
-            # 'pid_attitude.pitch_ki': 0, 
-            # 'pid_attitude.roll_kp': 0, 
-            # 'pid_attitude.roll_kd': 0.0, 
-            # 'pid_attitude.roll_ki': 0, 
-            # 'pid_attitude.yaw_kp': 0.0, 
-            # 'pid_attitude.yaw_kd': 0.0, 
-            # 'pid_attitude.yaw_ki': 0.0, 
-            'pid_attitude.pitch_kp': 3.5, 
-            'pid_attitude.pitch_kd': 0.0, 
-            'pid_attitude.pitch_ki': 2.0, 
-            'pid_attitude.roll_kp': 3.5, 
-            'pid_attitude.roll_kd': 0.0, 
-            'pid_attitude.roll_ki': 2.0, 
-            'pid_attitude.yaw_kp': 0.0, 
-            'pid_attitude.yaw_kd': 0.0, 
-            'pid_attitude.yaw_ki': 0.0, 
-            'sensorfusion6.kp': 0.800000011921, 
-            'sensorfusion6.ki': 0.00200000009499, 
-            'imu_acc_lpf.factor': 32 }
             
+
         self.max_rp_angle = 10
         self.currentLat = []
         self.currentLong = []
@@ -132,15 +97,6 @@ class AiController():
         self.destinationLong = []
         self.cfHeading = None
         
-        
-        rollDelta = 5;
-        pitchDelta = 5;
-        yawDelta = 5;
-        rollDone = False
-        pitchDone = False
-        yawDone = False
-        self.tuningPhase = 0
-        self.tuned = False
 
     def readInput(self):
         """Read input from the selected device."""
@@ -212,7 +168,7 @@ class AiController():
         self.timer1 = self.timer1 + timeSinceLastAi
         self.lastTime = currentTime
         
-        # Basic AutoPilot steadly increase thrust, hover, land and repeat
+        # Basic AutoPilot steadly increase thrust, hover
         # -------------------------------------------------------------
         # delay before takeoff 
         if self.timer1 < 0:
@@ -247,7 +203,7 @@ class AiController():
                     self.data["roll"] = sin(turnAngle) * self.max_rp_angle
                     self.data["pitch"] = cos(turnAngle) * self.max_rp_angle
 
-
+        self.checkGeofence()
 
 
         # override Other inputs as needed
@@ -273,11 +229,6 @@ class AiController():
         self.data["thrust"] = self.aiData["thrust"]
 
 
-    
-    
-    # update via param.py -> radiodriver.py -> crazyradio.py -> usbRadio )))
-    def updateCrazyFlieParam(self, completename ):
-        self.cf.param.set_value( unicode(completename), str(self.cfParams[completename]) )
 
 
     def getSignalQuality(self):
@@ -317,30 +268,27 @@ class AiController():
         
         return angleInDegrees
 
+    def checkGeofence(self):
+        # Verify that all four values are available to calculate first
+        if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
+            distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+            distanceToDestination = self.calculateDistanceInMetersBetweenCoord( 0, 0, self.destinationLat[-1], self.destinationLong[-1])
+
+            if distanceToDestination < 10:
+                self.arrivalEvent()
+
+    def arrivalEvent(self):
+        print "Woohoo I'm in the fence!"
+        self.data["roll"] = 0
+        self.data["pitch"] = 0
+
+
+
     def calculateDiffHeadingOrientation(self, desiredHeading, orientation):
         orientation = 0
         difference = desiredHeading - orientation
 
         return difference
-
-# - (void)calculateAngleBegtweenCoordinates
-# {
-#     if (self.sortedAnnotations.lastObject != nil) {
-#         /* Sorted annotations is used because the maps annotations array isn't sorted and includes the user's location. */
-#         RegionAnnotation *lastAnnotation = [self.sortedAnnotations lastObject];
-        
-        
-#         CGFloat deltaY = lastAnnotation.coordinate.longitude - self.userLoc.coordinate.longitude;
-#         CGFloat deltaX = lastAnnotation.coordinate.latitude - self.userLoc.coordinate.latitude;
-        
-#         CGFloat angleInDegrees = atan2(deltaY, deltaX) * 180 / M_PI;
-        
-#         NSLog(@"angleInDegrees: %f", angleInDegrees);
-        
-#         self.angleBetweenCoordinates = angleInDegrees;
-#     } else {
-#         NSLog(@"No Geofences");
-#     }
 
 
 
