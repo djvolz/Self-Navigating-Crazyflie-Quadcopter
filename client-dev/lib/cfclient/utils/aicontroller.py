@@ -69,25 +69,14 @@ logger = logging.getLogger(__name__)
 
 class AiController():
     """Used for reading data from input devices using the PyGame API."""
-    
+    # linkQualitySignal = pyqtSignal(int)
+
     def __init__(self,cf):
+        # super(AiController, self).__init__(cf)
         self.cf = cf
         self.inputMap = None
         pygame.init()
 
-        # # AI variables
-        # self.timer1 = 0
-        # self.lastTime = 0
-
-        # # ---AI tuning variables---
-        # # This is the thrust of the motors duing hover.  0.5 reaches ~1ft depending on battery
-        # self.maxThrust = 1
-        # # Determines how fast to take off
-        # self.thrustInc = 0.1
-        # self.takeoffTime = 0.5
-        # # Determines how fast to land
-        # self.thrustDec = -0.019
-        # self.hoverTime = 2
 
         # parameters pulled from json with defaults from crazyflie pid.h
         # perl -ne '/"(\w*)": {/ && print $1,  "\n" ' lib/cflib/cache/27A2C4BA.json
@@ -130,6 +119,10 @@ class AiController():
         self.destinationLat = []
         self.destinationLong = []
         self.cfHeading = None
+
+        
+        linkQualityValue = []
+        # self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
         
 
     def readInput(self):
@@ -195,51 +188,28 @@ class AiController():
         I have found that a value  of 0.5 will reach about 1ft off the ground 
         depending on the battery's charge.
         """
+        # self.getSignalQuality()
 
-        # Keep track of time
-        # currentTime = time.time()
-        # timeSinceLastAi = currentTime - self.lastTime
-        # self.timer1 = self.timer1 + timeSinceLastAi
-        # self.lastTime = currentTime
-        
-        # # Basic AutoPilot steadly increase thrust, hover
-        # # -------------------------------------------------------------
-        # # delay before takeoff 
-        # if self.timer1 < 0:
-        #     thrustDelta = 0
-        #     # clear the error lists before takeoff
-        # # takeofff
-        # elif self.timer1 < self.takeoffTime :
-        #     thrustDelta = self.thrustInc
-        # # hold
-        # else:# self.timer1 < self.takeoffTime + self.hoverTime :
-        #     self.data["althold"] = not self.data["althold"]
-        #     thrustDelta = 0
-        # self.addThrust( thrustDelta )
-
-            
-
+        if self.checkGeofence():
+            self.arrivalEvent()
         # self.data["althold"] = not self.data["althold"]
-
+        else:
         # Verify that all four values are available to calculate first
-        if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
-            distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
-            print "Distance from destination: ", distanceToDestination
+            if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
+                distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+                print "Distance from destination: ", distanceToDestination
 
-            angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
-            print "Angle between coordinates: ", angleBetweenCoordinates
+                angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+                print "Angle between coordinates: ", angleBetweenCoordinates
 
-            if not (self.cfHeading == None):
-                turnAngle = self.calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
-                
-                if not (turnAngle == 0):
-                    self.data["roll"] = sin(turnAngle) * self.max_rp_angle
-                    self.data["pitch"] = cos(turnAngle) * self.max_rp_angle
-                    print "roll"
-                    print self.data["roll"]
-                    print "pitch"
-                    print self.data["pitch"]
-        # self.checkGeofence()
+                if not (self.cfHeading == None):
+                    tiltAngle = self.calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
+                    print "tiltAngle ", tiltAngle
+
+                    self.data["roll"] = sin(tiltAngle) #* self.max_rp_angle
+                    self.data["pitch"] = cos(tiltAngle) #* self.max_rp_angle
+        
+
 
 
         # override Other inputs as needed
@@ -250,31 +220,15 @@ class AiController():
         # self.data["estop"] = self.aiData["estop"]
         # self.data["exit"] = self.aiData["exit"]
 
-    # def addThrust(self, thrustDelta):
-    #     # Increment thrust
-    #     self.aiData["thrust"] = self.aiData["thrust"] + thrustDelta 
 
-    #     # Check for max
-    #     if self.aiData["thrust"] > self.maxThrust:
-    #         self.aiData["thrust"] = self.maxThrust
-    #     # check for min 
-    #     elif self.aiData["thrust"] < 0:
-    #         self.aiData["thrust"] = 0
-        
-    #     # overwrite joystick thrust values
-    #     self.data["thrust"] = self.aiData["thrust"]
-
-
-
-
+    
+    
     def getSignalQuality(self):
-        linkQualityValue = []
-        linkQualitySignal = pyqtSignal(int)
+        
         # Connect link quality feedback
-        self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
         self.linkQualitySignal.connect(
                     lambda percentage: self.linkQualityValue.append(percentage))
-        print linkQualityValue
+        print self.linkQualityValue
 
         #if(linkQualityValue < 60):
             # Have the crazyflie fly in the opposite direction.
@@ -310,10 +264,12 @@ class AiController():
         # Verify that all four values are available to calculate first
         if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
             distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
-            # distanceToDestination = self.calculateDistanceInMetersBetweenCoord( 0, 0, self.destinationLat[-1], self.destinationLong[-1])
-
+            
+            # If inside geofense then return true.
             if distanceToDestination < 10:
-                self.arrivalEvent()
+                return True
+            return False
+                
 
     def arrivalEvent(self):
         print "Woohoo I'm in the fence!"
@@ -388,7 +344,7 @@ class AiController():
     def getCurrentCoords(self, latitude, longitude):
         self.currentLat.append(0)
         self.currentLong.append(0)
-        print "current latitude ", latitude, " longitude ", longitude
+        #print "current latitude ", latitude, " longitude ", longitude
 
     def getDestinationCoords(self, latitude, longitude):
         self.destinationLat.append(latitude)

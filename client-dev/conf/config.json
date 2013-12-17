@@ -14,7 +14,7 @@
   "max_yaw": 200, 
   "flightmode": "Normal", 
   "enable_debug_driver": false, 
-  "open_tabs": "Flight Control,Log TOC,GPS,Map", 
+  "open_tabs": "Flight Control,Log TOC,GPS", 
   "input_device_blacklist": "(VirtualBox|VMware)", 
   "trim_roll": 0.0, 
   "max_thrust": 80, 
