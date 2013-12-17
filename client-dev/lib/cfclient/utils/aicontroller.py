@@ -158,8 +158,8 @@ class AiController():
         self.currentCoordinates = []
         self.destinationCoordinates = []
 
+        self.numberOfTravelPackets = 10000
         self.cfHeading = None
-
         self.allowTravel = True
         self.linkQualityHistory = []
         # self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
@@ -223,11 +223,16 @@ class AiController():
     def augmentInputWithAi(self):
 
         if not self.withinRangeOfUser():
+            print "Warning: User Out of Range"
             self.arrivalEvent()
         else:
             if self.checkGeofence():
-                self.arrivalEvent()
-            # self.data["althold"] = not self.data["althold"]
+                print "Entered the zone"
+                self.destinationCoordinates.pop()
+                if not len(self.destinationCoordinates) == 0:
+                    self.arrivalEvent()
+                else:
+                    self.data["althold"] = not self.data["althold"]
             elif self.allowTravel:
             # Verify that all four values are available to calculate first
                 if (self.currentCoordinates and self.destinationCoordinates):
@@ -240,11 +245,11 @@ class AiController():
                     print "Angle between coordinates: ", angleBetweenCoordinates
 
                     if not (self.cfHeading == None):
-                        tiltAngle = self.calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
-                        print "tiltAngle ", tiltAngle
+                        tiltTowardsAngle = self.calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
+                        print "tiltTowardsAngle ", tiltTowardsAngle
 
-                        self.data["roll"] = sin(tiltAngle) #* self.max_rp_angle
-                        self.data["pitch"] = cos(tiltAngle) #* self.max_rp_angle
+                        self.data["roll"] = sin(tiltTowardsAngle) #* self.max_rp_angle
+                        self.data["pitch"] = cos(tiltTowardsAngle) #* self.max_rp_angle
             else:
                 self.waitForUser()
         
@@ -274,16 +279,16 @@ class AiController():
 
     def arrivalEvent(self):
         self.allowTravel = False
-        print "Stopping to catch my breath"
+        # print "Stopping to catch my breath"
         self.data["roll"] = 0
         self.data["pitch"] = 0
         self.waitForUser()
 
     def waitForUser(self):
-        recentlySucceededCnt = sum([1 for x in self.linkQualityHistory[-1000:] if x>=90])
-        if recentlySucceededCnt > 0 and recentlySucceededCnt < 1000:
-            print recentlySucceededCnt, "of the last 200 packets succeeded!"
-        if recentlySucceededCnt >= 200:
+        recentlySucceededCnt = sum([1 for x in self.linkQualityHistory[-self.numberOfTravelPackets:] if x>=90])
+        if recentlySucceededCnt > 0 and recentlySucceededCnt < self.numberOfTravelPackets:
+            print recentlySucceededCnt, "of the last ", self.numberOfTravelPackets, " packets succeeded!"
+        if recentlySucceededCnt >= 8000:
             self.allowTravel = True
 
 
@@ -307,26 +312,27 @@ class AiController():
     #     # convert to meters
     #     return (nD*1000)
 
-    def calculateAngleBegtweenCoordinates(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
-        pi = 3.14159
-        deltaY = destinationCoordLong - currentCoordLong
-        deltaX = destinationCoordLat - currentCoordLat
+    # def calculateAngleBegtweenCoordinates(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
+    #     pi = 3.14159
+    #     deltaY = destinationCoordLong - currentCoordLong
+    #     deltaX = destinationCoordLat - currentCoordLat
 
-        angleInDegrees = atan2(deltaY, deltaX) * 180 / pi
+    #     angleInDegrees = atan2(deltaY, deltaX) * 180 / pi
         
-        return angleInDegrees
+    #     return angleInDegrees
 
     def checkGeofence(self):
         # Verify that all four values are available to calculate first
         if (self.currentCoordinates and self.destinationCoordinates):
             distanceToDestination = self.currentCoordinates[-1].distance(self.destinationCoordinates[-1])
-            # distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
             
             # If inside geofense then return true.
             if distanceToDestination < 10:
                 return True
             return False
                 
+
+
 
     def calculateDiffHeadingOrientation(self, desiredHeading, orientation):
         orientation = 0
@@ -394,6 +400,8 @@ class AiController():
     def getCurrentCoords(self, latitude, longitude):
         coordinate = Coordinate(0, 0)
         self.currentCoordinates.append(coordinate)
+        if len(self.currentCoordinates) > 1:
+            self.currentCoordinates.pop(0)
         # self.currentLat.append(0)
         # self.currentLong.append(0)
         #print "current latitude ", latitude, " longitude ", longitude
@@ -408,6 +416,8 @@ class AiController():
     def getSignalStrength(self, ss):
         #print "signal strength is ", ss
         self.linkQualityHistory.append(ss)
-        if len(self.linkQualityHistory) > 1000:
+        if len(self.linkQualityHistory) > self.numberOfTravelPackets:
             self.linkQualityHistory.pop(0)
+
+    # def sendCurrentCoordinates(self)
 
