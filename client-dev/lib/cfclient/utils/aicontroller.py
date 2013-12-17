@@ -88,6 +88,40 @@ class AiController():
         # # Determines how fast to land
         # self.thrustDec = -0.019
         # self.hoverTime = 2
+
+        # parameters pulled from json with defaults from crazyflie pid.h
+        # perl -ne '/"(\w*)": {/ && print $1,  "\n" ' lib/cflib/cache/27A2C4BA.json
+        self.cfParams = {
+            'pid_rate.pitch_kp': 0.0, 
+            'pid_rate.pitch_kd': 0.0, 
+            'pid_rate.pitch_ki': 0.0, 
+            'pid_rate.roll_kp': 0, 
+            'pid_rate.roll_kd': 0.0, 
+            'pid_rate.roll_ki': 0.0, 
+            'pid_rate.yaw_kp': 0, 
+            'pid_rate.yaw_kd': 0.0, 
+            'pid_rate.yaw_ki': 0, 
+            # 'pid_attitude.pitch_kp': 0, 
+            # 'pid_attitude.pitch_kd': 0.0, 
+            # 'pid_attitude.pitch_ki': 0, 
+            # 'pid_attitude.roll_kp': 0, 
+            # 'pid_attitude.roll_kd': 0.0, 
+            # 'pid_attitude.roll_ki': 0, 
+            # 'pid_attitude.yaw_kp': 0.0, 
+            # 'pid_attitude.yaw_kd': 0.0, 
+            # 'pid_attitude.yaw_ki': 0.0, 
+            'pid_attitude.pitch_kp': 3.5, 
+            'pid_attitude.pitch_kd': 0.0, 
+            'pid_attitude.pitch_ki': 2.0, 
+            'pid_attitude.roll_kp': 3.5, 
+            'pid_attitude.roll_kd': 0.0, 
+            'pid_attitude.roll_ki': 2.0, 
+            'pid_attitude.yaw_kp': 0.0, 
+            'pid_attitude.yaw_kd': 0.0, 
+            'pid_attitude.yaw_ki': 0.0, 
+            'sensorfusion6.kp': 0.800000011921, 
+            'sensorfusion6.ki': 0.00200000009499, 
+            'imu_acc_lpf.factor': 32 }
             
 
         self.max_rp_angle = 10
