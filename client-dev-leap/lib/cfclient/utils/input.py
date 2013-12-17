@@ -53,6 +53,9 @@ import shutil
 logger = logging.getLogger(__name__)
 
 from cfclient.utils.pygamereader import PyGameReader
+
+from cfclient.utils.leapreader import LeapmotionReader
+
 from PyQt4.QtCore import Qt, pyqtSlot, pyqtSignal, QThread, SIGNAL
 from cfclient.utils.config import Config
 from cfclient.utils.config_manager import ConfigManager
@@ -78,8 +81,12 @@ class JoystickReader(QThread):
     def __init__(self, do_device_discovery=True, cf=None):
         QThread.__init__(self)
         # TODO: Should be OS dependant
-        self.inputdevice = AiController(cf)
-        JoystickReader.controller = self.inputdevice
+        # if useAIContoller:
+            # self.inputdevice = AiController(cf)
+            # JoystickReader.controller = self.inputdevice
+        # else:
+        self.inputdevice = LeapmotionReader()
+        
         # self.inputdevice = PyGameReader()
         
         self.update_trim_yaw_signal.connect(self._update_trim_yaw)
