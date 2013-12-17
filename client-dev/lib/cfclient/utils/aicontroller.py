@@ -186,8 +186,6 @@ class AiController():
             
 
         # self.data["althold"] = not self.data["althold"]
-        
-        print "HEY CHECK OUT ALL THIS COOL AI SHIT!!!!"
 
         # Verify that all four values are available to calculate first
         if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
@@ -203,8 +201,11 @@ class AiController():
                 if not (turnAngle == 0):
                     self.data["roll"] = sin(turnAngle) * self.max_rp_angle
                     self.data["pitch"] = cos(turnAngle) * self.max_rp_angle
-
-        self.checkGeofence()
+                    print "roll"
+                    print self.data["roll"]
+                    print "pitch"
+                    print self.data["pitch"]
+        # self.checkGeofence()
 
 
         # override Other inputs as needed
@@ -273,7 +274,7 @@ class AiController():
         # Verify that all four values are available to calculate first
         if (self.currentLat and self.currentLong and self.destinationLat and self.destinationLong):
             distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
-            distanceToDestination = self.calculateDistanceInMetersBetweenCoord( 0, 0, self.destinationLat[-1], self.destinationLong[-1])
+            # distanceToDestination = self.calculateDistanceInMetersBetweenCoord( 0, 0, self.destinationLat[-1], self.destinationLong[-1])
 
             if distanceToDestination < 10:
                 self.arrivalEvent()
@@ -349,12 +350,12 @@ class AiController():
         #print vals
 
     def getCurrentCoords(self, latitude, longitude):
-        self.currentLat.append(latitude)
-        self.currentLong.append(longitude)
-        print "latitude ", latitude, " longitude ", longitude
+        self.currentLat.append(0)
+        self.currentLong.append(0)
+        print "current latitude ", latitude, " longitude ", longitude
 
     def getDestinationCoords(self, latitude, longitude):
         self.destinationLat.append(latitude)
         self.destinationLong.append(longitude)
-        print "latitude " , latitude, " longitude ", longitude
+        print "destination latitude " , latitude, " longitude ", longitude
 
