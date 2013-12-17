@@ -32,10 +32,10 @@ Showns the Log TOC of available variables in the Crazyflie.
 __author__ = 'Bitcraze AB'
 __all__ = ['MapTab']
 
-import sys, time
+import sys, time, os
 
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtCore import Qt, pyqtSlot, pyqtSignal, QThread, SIGNAL
+from PyQt4.QtCore import Qt, pyqtSlot, pyqtSignal, QThread, SIGNAL, QUrl
 
 from cflib.crazyflie import Crazyflie
 
@@ -75,6 +75,13 @@ class MapTab(Tab, param_tab_class):
         # Clear the log TOC list when the Crazyflie is disconnected
         self.cf.disconnected.add_callback(self.disconnectedSignal.emit)
         self.disconnectedSignal.connect(self.disconnected)
+        
+        mapUrl = os.path.abspath("./lib/cfclient/ui/tabs/test.htm")
+        print mapUrl
+        self.webView.setUrl(QUrl(mapUrl))
+        print self.webView.url().toString()
+        #self.webView.reload()
+        #self.webView.load(QUrl(mapUrl))
 
     @pyqtSlot('QString')
     def disconnected(self, linkname):

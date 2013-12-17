@@ -18,7 +18,7 @@
     <widget class="QWebView" name="webView">
      <property name="url">
       <url>
-       <string>file:///home/reed/Courses/Dogcopter/pymaps-read-only/test.htm</string>
+       <string>about:blank</string>
       </url>
      </property>
     </widget>
