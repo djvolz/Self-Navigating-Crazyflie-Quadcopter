@@ -90,7 +90,7 @@ class LeapListener(leapmotion.Leap.Listener):
             # Protect against accidental readings. When tilting the had
             # fingers are sometimes lost so only use 4.
             if (len(hand.fingers) < 4):
-                self.data["althold"] = True
+                self.data["althold"] = not self.data["althold"]
                 # self._dcb(0,0,0,0)
             else:
                 self._dcb(pitch, roll, yaw, thrust)
