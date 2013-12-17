@@ -160,7 +160,7 @@ class AiController():
 
         self.cfHeading = None
 
-        
+        self.allowTravel = True
         self.linkQualityHistory = []
         # self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
         
@@ -221,37 +221,32 @@ class AiController():
 
     # ELEC424 TODO:  Improve this function as needed
     def augmentInputWithAi(self):
-        """
-        Overrides the throttle input with a controlled takeoff, hover, and land loop.
-        You will to adjust the tuning vaiables according to your crazyflie.  
-        The max thrust has been set to 0.3 and likely will not fly.  
-        I have found that a value  of 0.5 will reach about 1ft off the ground 
-        depending on the battery's charge.
-        """
-        
+
         if not self.withinRangeOfUser():
             self.arrivalEvent()
-
-        if self.checkGeofence():
-            self.arrivalEvent()
-        # self.data["althold"] = not self.data["althold"]
         else:
-        # Verify that all four values are available to calculate first
-            if (self.currentCoordinates and self.destinationCoordinates):
-                distanceToDestination = self.currentCoordinates[-1].distance(self.destinationCoordinates[-1])
-                # distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
-                print "Distance from destination: ", distanceToDestination
+            if self.checkGeofence():
+                self.arrivalEvent()
+            # self.data["althold"] = not self.data["althold"]
+            elif self.allowTravel:
+            # Verify that all four values are available to calculate first
+                if (self.currentCoordinates and self.destinationCoordinates):
+                    distanceToDestination = self.currentCoordinates[-1].distance(self.destinationCoordinates[-1])
+                    # distanceToDestination = self.calculateDistanceInMetersBetweenCoord( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+                    print "Distance from destination: ", distanceToDestination
 
-                angleBetweenCoordinates = self.currentCoordinates[-1].angle(self.destinationCoordinates[-1])
-                # angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
-                print "Angle between coordinates: ", angleBetweenCoordinates
+                    angleBetweenCoordinates = self.currentCoordinates[-1].angle(self.destinationCoordinates[-1])
+                    # angleBetweenCoordinates = self.calculateAngleBegtweenCoordinates( self.currentLat[-1], self.currentLong[-1], self.destinationLat[-1], self.destinationLong[-1])
+                    print "Angle between coordinates: ", angleBetweenCoordinates
 
-                if not (self.cfHeading == None):
-                    tiltAngle = self.calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
-                    print "tiltAngle ", tiltAngle
+                    if not (self.cfHeading == None):
+                        tiltAngle = self.calculateDiffHeadingOrientation(angleBetweenCoordinates, self.cfHeading)
+                        print "tiltAngle ", tiltAngle
 
-                    self.data["roll"] = sin(tiltAngle) #* self.max_rp_angle
-                    self.data["pitch"] = cos(tiltAngle) #* self.max_rp_angle
+                        self.data["roll"] = sin(tiltAngle) #* self.max_rp_angle
+                        self.data["pitch"] = cos(tiltAngle) #* self.max_rp_angle
+            else:
+                self.waitForUser()
         
 
 
@@ -276,6 +271,23 @@ class AiController():
             return False
 
         return True
+
+    def arrivalEvent(self):
+        self.allowTravel = False
+        print "Stopping to catch my breath"
+        self.data["roll"] = 0
+        self.data["pitch"] = 0
+        self.waitForUser()
+
+    def waitForUser(self):
+        recentlySucceededCnt = sum([1 for x in self.linkQualityHistory[-1000:] if x>=90])
+        if recentlySucceededCnt > 0 and recentlySucceededCnt < 1000:
+            print recentlySucceededCnt, "of the last 200 packets succeeded!"
+        if recentlySucceededCnt >= 200:
+            self.allowTravel = True
+
+
+
 
     def updateCrazyFlieParam(self, completename ):
         self.cf.param.set_value( unicode(completename), str(self.cfParams[completename]) )
@@ -315,13 +327,6 @@ class AiController():
                 return True
             return False
                 
-
-    def arrivalEvent(self):
-        print "Woohoo I'm in the fence!"
-        self.data["roll"] = 0
-        self.data["pitch"] = 0
-
-
 
     def calculateDiffHeadingOrientation(self, desiredHeading, orientation):
         orientation = 0
@@ -403,6 +408,6 @@ class AiController():
     def getSignalStrength(self, ss):
         #print "signal strength is ", ss
         self.linkQualityHistory.append(ss)
-        if len(self.linkQualityHistory) > 100:
+        if len(self.linkQualityHistory) > 1000:
             self.linkQualityHistory.pop(0)
 
