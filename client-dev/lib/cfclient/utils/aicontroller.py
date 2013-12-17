@@ -298,29 +298,6 @@ class AiController():
         self.cf.param.set_value( unicode(completename), str(self.cfParams[completename]) )
 
 
-    # def calculateDistanceInMetersBetweenCoord(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
-    #     pi = 3.14159
-    #     nRadius = 6371;  #Earth's radius in Kilometers
-    #     latDiff = (destinationCoordLat - currentCoordLat) * (pi/180)
-    #     lonDiff = (destinationCoordLong - currentCoordLong) * (pi/180)
-    #     lat1InRadians = currentCoordLat * (pi/180);
-    #     lat2InRadians = destinationCoordLat * (pi/180)
-    #     nA = pow( sin(latDiff/2), 2 ) + cos(lat1InRadians) * cos(lat2InRadians) * pow( sin(lonDiff/2), 2 )
-    #     nC = 2 * atan2( sqrt(nA), sqrt( 1 - nA ))
-    #     nD = nRadius * nC
-
-    #     # convert to meters
-    #     return (nD*1000)
-
-    # def calculateAngleBegtweenCoordinates(self, currentCoordLat, currentCoordLong, destinationCoordLat, destinationCoordLong):
-    #     pi = 3.14159
-    #     deltaY = destinationCoordLong - currentCoordLong
-    #     deltaX = destinationCoordLat - currentCoordLat
-
-    #     angleInDegrees = atan2(deltaY, deltaX) * 180 / pi
-        
-    #     return angleInDegrees
-
     def checkGeofence(self):
         # Verify that all four values are available to calculate first
         if (self.currentCoordinates and self.destinationCoordinates):
@@ -347,8 +324,6 @@ class AiController():
     def start_input(self, deviceId, inputMap):
         """Initalize the reading and open the device with deviceId and set the mapping for axis/buttons using the
         inputMap"""
-        # self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "exit":False}
-        # self.aiData = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "exit":False}
         self.data = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "althold": False, "exit":False}
         self.aiData = {"roll":0.0, "pitch":0.0, "yaw":0.0, "thrust":0.0, "pitchcal":0.0, "rollcal":0.0, "estop": False, "althold": False, "exit":False}
         self.inputMap = inputMap
@@ -398,20 +373,16 @@ class AiController():
         #print vals
 
     def getCurrentCoords(self, latitude, longitude):
-        coordinate = Coordinate(0, 0)
+        coordinate = Coordinate(latitude, longitude)
         self.currentCoordinates.append(coordinate)
         if len(self.currentCoordinates) > 1:
             self.currentCoordinates.pop(0)
-        # self.currentLat.append(0)
-        # self.currentLong.append(0)
         #print "current latitude ", latitude, " longitude ", longitude
 
     def getDestinationCoords(self, latitude, longitude):
         coordinate = Coordinate(latitude, longitude)
         self.destinationCoordinates.append(coordinate)
-        # self.destinationLat.append(latitude)
-        # self.destinationLong.append(longitude)
-        print "destination latitude " , latitude, " longitude ", longitude
+        # print "destination latitude " , latitude, " longitude ", longitude
 
     def getSignalStrength(self, ss):
         #print "signal strength is ", ss
