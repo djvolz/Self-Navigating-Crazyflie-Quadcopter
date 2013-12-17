@@ -419,5 +419,4 @@ class AiController():
         if len(self.linkQualityHistory) > self.numberOfTravelPackets:
             self.linkQualityHistory.pop(0)
 
-    # def sendCurrentCoordinates(self)
 
