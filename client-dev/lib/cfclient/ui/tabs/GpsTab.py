@@ -112,10 +112,10 @@ http://maps.googleapis.com/maps/api/directions/json?origin={0},{1}&destination={
         for step in dirsResult:
 		    loc = step["end_location"]
 		    JoystickReader.controller.getDestinationCoords(loc["lat"], loc["lng"])
-        #latitude = self.GPS.getGpsd().fix.latitude
-        #longitude = self.GPS.getGpsd().fix.longitude
-        latitude = 29.7198
-        longitude = -95.398087
+        latitude = self.GPS.getGpsd().fix.latitude
+        longitude = self.GPS.getGpsd().fix.longitude
+        #latitude = 29.7198
+        #longitude = -95.398087
         print("%0.5f"%self.destLatVal)
         print("%0.5f"%self.destLongVal)
         mapHTML = showmap.generateHTML(latitude,longitude,self.destLatVal,self.destLongVal)

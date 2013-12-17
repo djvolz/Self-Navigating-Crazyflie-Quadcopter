@@ -359,7 +359,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
 	
 def generateHTML(startLat, startLong, destLat, destLong):
     import sys
-    print "sup"
     startCoord = "%0.5f,%0.5f"%(startLat, startLong) #"29.71984,-95.398087"
     endCoord = "%0.5f,%0.5f"%(destLat, destLong) #"29.732395,-95.394824"
     ##g = PyMap()                         # creates an icon & map by default
@@ -376,7 +375,6 @@ def generateHTML(startLat, startLong, destLat, destLong):
     #g.maps[0].setpoint(r)
     #g.maps[0].setpoint(s)
     
-    print "sup"
     #open('test.htm','wb').write(showhtml2(startCoord, endCoord))   # generate test file
     return showhtml2(startCoord, endCoord)
 
