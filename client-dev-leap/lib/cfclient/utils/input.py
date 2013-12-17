@@ -82,8 +82,8 @@ class JoystickReader(QThread):
         QThread.__init__(self)
         # TODO: Should be OS dependant
         # if useAIContoller:
-            # self.inputdevice = AiController(cf)
-            # JoystickReader.controller = self.inputdevice
+        self.inputdevice = AiController(cf)
+        JoystickReader.controller = self.inputdevice
         # else:
         self.inputdevice = LeapmotionReader()
         
