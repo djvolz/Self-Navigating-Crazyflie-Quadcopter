@@ -121,7 +121,7 @@ class AiController():
         self.cfHeading = None
 
         
-        linkQualityValue = []
+        self.linkQualityHistory = []
         # self.cf.linkQuality.add_callback(self.linkQualitySignal.emit)
         
 
@@ -188,7 +188,9 @@ class AiController():
         I have found that a value  of 0.5 will reach about 1ft off the ground 
         depending on the battery's charge.
         """
-        # self.getSignalQuality()
+        
+        if not self.withinRangeOfUser():
+            self.arrivalEvent()
 
         if self.checkGeofence():
             self.arrivalEvent()
@@ -223,15 +225,15 @@ class AiController():
 
     
     
-    def getSignalQuality(self):
-        
-        # Connect link quality feedback
-        self.linkQualitySignal.connect(
-                    lambda percentage: self.linkQualityValue.append(percentage))
-        print self.linkQualityValue
+    def withinRangeOfUser(self):
+        #ONE LINER!!! I AM 1337zoarz
+        recentlyFailedCnt = sum([1 for x in self.linkQualityHistory[-100:] if x==0])
+        if recentlyFailedCnt > 0 and recentlyFailedCnt < 100:
+            print recentlyFailedCnt, "of the last 100 packets failed!"
+        if recentlyFailedCnt >= 3:
+            return False
 
-        #if(linkQualityValue < 60):
-            # Have the crazyflie fly in the opposite direction.
+        return True
 
     def updateCrazyFlieParam(self, completename ):
         self.cf.param.set_value( unicode(completename), str(self.cfParams[completename]) )
@@ -352,5 +354,8 @@ class AiController():
         print "destination latitude " , latitude, " longitude ", longitude
 
     def getSignalStrength(self, ss):
-        print "signal strength is ", ss
+        #print "signal strength is ", ss
+        self.linkQualityHistory.append(ss)
+        if len(self.linkQualityHistory) > 100:
+            self.linkQualityHistory.pop(0)
 
