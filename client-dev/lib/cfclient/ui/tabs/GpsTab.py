@@ -33,6 +33,7 @@ __author__ = 'Bitcraze AB'
 __all__ = ['GpsTab']
 
 import sys, time
+import simplejson, urllib
 
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import Qt, pyqtSlot, pyqtSignal, QThread, SIGNAL
@@ -46,6 +47,7 @@ from cfclient.utils.guiconfig import GuiConfig
 
 from cfclient.utils.periodictimer import PeriodicTimer
 from cfclient.utils.input import JoystickReader
+import showmap, math
 
 param_tab_class = uic.loadUiType(sys.path[0] + "/cfclient/ui/tabs/GpsTab.ui")[0]
 
@@ -87,6 +89,9 @@ class GpsTab(Tab, param_tab_class):
         # Clear the log TOC list when the Crazyflie is disconnected
         self.cf.disconnected.add_callback(self.disconnectedSignal.emit)
         self.disconnectedSignal.connect(self.disconnected)
+        
+        mapHTML = showmap.generateHTML(29.71984,-95.398087,29.732395,-95.394824)
+        self.webView.setHtml(mapHTML)
 
     @pyqtSlot('QString')
     def disconnected(self, linkname):
@@ -99,7 +104,22 @@ class GpsTab(Tab, param_tab_class):
     def destCoordsChanged(self):
         self.destLatVal = self.destLat.text().toFloat()[0]
         self.destLongVal = self.destLong.text().toFloat()[0]
-        JoystickReader.controller.getDestinationCoords(self.destLatVal, self.destLongVal)
+        url="""
+http://maps.googleapis.com/maps/api/directions/json?origin={0},{1}&destination={2},{3}&sensor=false
+""".format(29.71984,-95.398087,29.732395,-95.394824)
+        dirsResult=simplejson.load(urllib.urlopen(url))
+        dirsResult=dirsResult["routes"][0]["legs"][0]["steps"]
+        for step in dirsResult:
+		    loc = step["end_location"]
+		    JoystickReader.controller.getDestinationCoords(loc["lat"], loc["lng"])
+        #latitude = self.GPS.getGpsd().fix.latitude
+        #longitude = self.GPS.getGpsd().fix.longitude
+        latitude = 29.7198
+        longitude = -95.398087
+        print("%0.5f"%self.destLatVal)
+        print("%0.5f"%self.destLongVal)
+        mapHTML = showmap.generateHTML(latitude,longitude,self.destLatVal,self.destLongVal)
+        self.webView.setHtml(mapHTML)
     
     def destRevertChanges(self):
         self.destLat.setText(("%0.10f" %

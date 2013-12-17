@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>695</width>
+    <width>796</width>
     <height>531</height>
    </rect>
   </property>
@@ -17,107 +17,164 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Current Location</string>
+      <string/>
      </property>
-     <widget class="QWidget" name="gridLayoutWidget">
+     <widget class="QWebView" name="webView">
       <property name="geometry">
        <rect>
-        <x>9</x>
-        <y>29</y>
-        <width>631</width>
-        <height>81</height>
+        <x>0</x>
+        <y>110</y>
+        <width>771</width>
+        <height>401</height>
        </rect>
       </property>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="curLatLabel">
-         <property name="text">
-          <string>Latitude</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="curLongLabel">
-         <property name="text">
-          <string>Longitude</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="curLat"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="curLong"/>
-       </item>
-      </layout>
+      <property name="url">
+       <url>
+        <string>about:blank</string>
+       </url>
+      </property>
      </widget>
-     <widget class="QGroupBox" name="groupBox_2">
+     <widget class="QLabel" name="curLatLabel">
       <property name="geometry">
        <rect>
-        <x>-1</x>
-        <y>260</y>
-        <width>661</width>
-        <height>253</height>
+        <x>10</x>
+        <y>10</y>
+        <width>106</width>
+        <height>27</height>
        </rect>
       </property>
-      <property name="title">
-       <string>Destination</string>
+      <property name="text">
+       <string>Start Latitude</string>
       </property>
-      <widget class="QWidget" name="gridLayoutWidget_2">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>20</y>
-         <width>641</width>
-         <height>97</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Latitude</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Longitude</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="destLat"/>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="destLong"/>
-        </item>
-        <item row="2" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QPushButton" name="updateDest">
-            <property name="text">
-             <string>Update Destination</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="revertChanges">
-            <property name="text">
-             <string>Revert Changes</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
+     </widget>
+     <widget class="QLineEdit" name="curLat">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>10</y>
+        <width>121</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>29.7198</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>10</y>
+        <width>150</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Destination Latitude</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="destLat">
+      <property name="geometry">
+       <rect>
+        <x>408</x>
+        <y>10</y>
+        <width>91</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>29.732395</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="curLongLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>106</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Start Longitude</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="curLong">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>50</y>
+        <width>121</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>-95.398087</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>50</y>
+        <width>150</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Destination Longitude</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="destLong">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>50</y>
+        <width>91</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>-95.394824</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="updateDest">
+      <property name="geometry">
+       <rect>
+        <x>510</x>
+        <y>10</y>
+        <width>161</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Update Destination</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="revertChanges">
+      <property name="geometry">
+       <rect>
+        <x>530</x>
+        <y>50</y>
+        <width>131</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Revert Changes</string>
+      </property>
      </widget>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QWebView</class>
+   <extends>QWidget</extends>
+   <header>QtWebKit/QWebView</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
