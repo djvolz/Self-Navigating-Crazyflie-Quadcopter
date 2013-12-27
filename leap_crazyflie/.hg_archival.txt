@@ -1,5 +1,0 @@
-repo: bf27b1ef44ea11b9cc16cd64d0f46bc53a165406
-node: 7e9b7bed38573646cd0f33d979c67dcfe15dceb3
-branch: dev-leapmotion
-latesttag: 2013.4.2
-latesttagdistance: 47
